@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/group_forecast_bg"
+        android:background="@drawable/drawable_weather_bg_sunny"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <View
+        android:id="@+id/status_bar_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/weather_bg_color_end_sunny"
+        android:importantForAccessibility="no" />
+    <com.smartisan.weather.WeatherGroupContainer
+        android:id="@+id/group_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include
+            android:id="@+id/group_previous"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/item_viewpager_new"/>
+        <include
+            android:id="@+id/group_next"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/item_viewpager_new"/>
+    </com.smartisan.weather.WeatherGroupContainer>
+</FrameLayout>

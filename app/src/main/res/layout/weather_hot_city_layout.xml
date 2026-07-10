@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.smartisan.weather.HotCityView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textSize="@dimen/weather_hot_city_text_size"
+        android:textStyle="bold"
+        android:textColor="@color/weather_hot_city_item_added_text_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/weather_hot_city_text_left_margin"
+        android:layout_marginTop="@dimen/weather_hot_city_text_top_margin"
+        android:text="@string/weather_hot_city"/>
+    <com.smartisan.weather.custom.FlowLayout
+        android:id="@+id/flow_parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="@dimen/weather_hot_city_list_left_and_right_margin"
+        android:layout_marginTop="@dimen/weather_hot_city_item_padding_top_bottom"
+        android:layout_marginRight="@dimen/weather_hot_city_list_left_and_right_margin"
+        android:layout_weight="1"/>
+</com.smartisan.weather.HotCityView>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.smartisan.weather.custom.WeatherMainTemView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/real_temp_view_group"
+    android:clipChildren="false"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/item_pager_top_box_temp_height">
+    <ImageView
+        android:id="@+id/real_sign"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"/>
+    <ImageView
+        android:id="@+id/real_num_1"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"/>
+    <ImageView
+        android:id="@+id/real_num_2"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"/>
+    <ImageView
+        android:id="@+id/real_num_3"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"/>
+    <ImageView
+        android:id="@+id/imageView_temptype"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"
+        android:src="@drawable/selector_weather_temp_type_checked"/>
+</com.smartisan.weather.custom.WeatherMainTemView>

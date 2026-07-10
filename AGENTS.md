@@ -1,0 +1,128 @@
+# Smartisan Weather Revived
+
+锤子天气 8.1.3 的现代 Android 复刻项目。目标是尽可能 1:1 还原原版界面、动画和触摸反馈，同时使用当前稳定的 Android 工具链。
+
+## 开发约束
+
+- 源码全部使用 Kotlin，主包为 `com.smartisan.weather`，目录固定为 `app/src/main/kotlin/com/smartisan/weather/`。
+- UI 使用 XML Layout + Android View + 自定义 View；项目已经移除 Jetpack Compose 和 Material3，不要重新引入 Compose 作为页面宿主或兼容层。
+- 使用多 Activity：主天气、城市搜索、城市管理和天气预警分别由独立 Activity 承载。
+- 这是无历史包袱的新项目，不需要兼容旧包路径、旧数据库、旧 SharedPreferences 或旧版应用升级流程。不要添加 `com.smartisanos.*`、Java 源码或仅用于迁移旧数据的分支。
+- 原版 APK/XML/资源/反编译代码用于确认尺寸、层级、状态机和动画细节；现代化应集中在生命周期、状态管理、数据层和系统 Insets，不应无依据地改写视觉行为。
+- 新增或升级依赖前先查阅 Android/Kotlin 官方文档，使用最新稳定版，不使用 alpha、beta、RC 或过时兼容库。依赖与插件版本以 `gradle/libs.versions.toml` 为准，Gradle 运行版本以 `gradle/wrapper/gradle-wrapper.properties` 为准。
+
+## 项目结构
+
+```text
+app/src/main/kotlin/com/smartisan/weather/
+├── SmartisanWeatherApplication.kt       # 轻量 Application 入口
+├── MainActivity.kt                      # 主天气 Activity、生命周期与页面跳转
+├── WeatherGroupContainer.kt             # 多城市分页、背景和主界面切换
+├── WeatherContentViewUtil.kt            # 原版天气内容 View 的创建/绑定
+├── custom/                              # 原版天气自定义 View 与动画 View
+│   ├── WeatherMainTemView.kt
+│   ├── WeatherTempAnimView.kt
+│   ├── WeatherHourForecastView.kt
+│   ├── SmartisanScrollView.kt
+│   ├── RefreshViewGroupLayout.kt
+│   ├── DragSortListView.kt
+│   ├── ElasticOverScrollLayout.kt
+│   └── IndicateView.kt
+├── widget/                              # 本地实现的 Smartisan 风格通用控件
+│   ├── TitleBar.kt
+│   ├── SearchBar.kt
+│   ├── MenuDialog.kt
+│   └── ShadowButton.kt
+├── bean/                                # 原版 View 层使用的数据 Bean
+├── data/
+│   ├── model/WeatherModels.kt           # 现代天气领域模型
+│   ├── city/                            # Room 3 城市数据库与仓库
+│   ├── location/                        # 系统反向地理编码与天气城市匹配
+│   ├── settings/WeatherSettings.kt      # DataStore Preferences 设置源
+│   └── weather/                         # 天气 API、JSON 解析和缓存
+├── ui/
+│   ├── main/                            # 主页面 ViewModel 与领域模型映射
+│   ├── search/                          # XML/View 城市搜索 Activity
+│   ├── citylist/                        # XML/View 城市管理 Activity
+│   ├── alert/                           # XML/View 天气预警 Activity
+│   ├── license/                         # 原版离线许可/隐私 HTML 页面
+│   ├── privacy/                         # 首次启动隐私提示
+│   └── navigation/                      # Activity 转场
+└── util/                                # 资源映射、温度单位、主题和日志工具
+
+app/src/main/res/
+├── layout/                              # 原版层级恢复后的 XML Layout
+├── drawable*/                           # selector、shape、PNG 与 NinePatch
+└── anim/                                # Activity/View 转场资源
+```
+
+## 当前架构
+
+- **UI**：纯 Kotlin + XML/View，多 Activity，原版自定义 View 直接承载复杂绘制和动画。
+- **工具链**：Gradle 9.6.1、AGP 9.2.1、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、Java 17。
+- **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、RecyclerView 1.4.0、Coroutines 1.11.0。
+- **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Activity 使用 lifecycle-aware collection；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
+- **数据**：Room 3 + bundled SQLite 保存城市；DataStore Preferences 是温度单位等设置的唯一数据源。
+- **网络**：`HttpURLConnection` + `org.json`，保留原版协议和签名，不使用 Retrofit/Moshi。
+- **依赖注入**：Application/Repository 手动单例，不引入 DI 框架。
+- **系统 UI**：target/compile API 37，页面按 View edge-to-edge 规则分别消费状态栏、导航栏和 IME Insets。
+- **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` + `Geocoder`，再通过行政区层级评分映射到生产 API 的 `cityId`；不引入第三方定位 SDK。
+- **资源**：原版可用的 XML、PNG、selector、动画和 56 个源 NinePatch 已从 APK 资源表恢复并由 aapt2 正常编译；不要再用 Compose 渐变替换这些资源。
+
+当前 namespace 为 `com.smartisan.weather`，applicationId 为 `app.smartisanweather.revived`。原版包名 `com.smartisanos.weather` 仅用于逆向对照，不得作为新源码包。
+
+## 构建与验证
+
+```bash
+./gradlew testDebugUnitTest  # JVM 单元测试
+./gradlew assembleDebug      # Debug APK
+./gradlew lintDebug          # Android Lint
+./gradlew assembleRelease    # Release APK，包含 R8 与资源压缩
+```
+
+提交页面或动画改动前，至少运行：
+
+```bash
+./gradlew testDebugUnitTest assembleDebug lintDebug
+```
+
+涉及 View 尺寸、Insets、触摸或动画的改动还必须安装到模拟器/真机，通过截图、录屏和交互实际验证，不能只以编译通过作为完成标准。
+
+## 天气 API
+
+截至 2026-07-10，原版生产服务仍可访问；网络失败仍需作为正常运行时状态处理，不能假设服务永久在线。
+
+- 天气：`https://api-weather.smartisan.com/v3/info.php`
+- 城市搜索：`https://api-weather.smartisan.com/v3/info/getCity`
+- 请求字段：`forecast,observe,air,forecast_hour,alert,allergy`
+- 盐值：`smartisan_weather_api`
+- 天气签名：按原参数顺序取得 query，移除其中所有 `&`，追加盐值后计算 32 位小写 MD5，再添加 `key`。
+- 城市搜索签名串：`page={page}q={query}size=20`。中文查询必须先取 UTF-8 字节，再按 ISO-8859-1 映射成字符后交给原版低 8 位字节 MD5 实现。
+
+签名实现看似不标准但与服务端一致。不要把 `WeatherApiClient.md5` 直接替换为普通的 Unicode/UTF-8 MD5，也不要随意调整参数顺序；修改前必须用中文城市搜索和真实天气请求做回归测试。
+
+生产 JSON 当前使用逐小时字段 `start_time`、`f_start_time`、`temp`、`code`，每日预报区分 `code1`/`code2`。解析器可以保留已存在的 camelCase 容错，但不能以容错字段替代生产字段。
+
+## 原版基准
+
+- 应用：Smartisan Weather 8.1.3
+- 原版 versionCode：104
+- 原版包名：`com.smartisanos.weather`
+- 逆向 APK：`Weather_8.1.3.apk`
+
+## 已恢复的关键交互
+
+- 城市管理页支持按柄拖拽、原行隐藏、上下阴影浮层、换位/落位动画、边缘滚动、取消恢复；返回丢弃预览顺序，完成后才用 Room 单事务提交。
+- 主页面已恢复城市分页阈值、边界阻尼及五次 ease-out 收拢；天气内容切换、温度刷新滚动、未变化温度抖动、C/F 滑动和背景过渡均按反编译参数恢复。关键参数包括内容 200/50ms、数值滚动 1400ms、抖动 125/250/250ms 加 70ms 延迟、C/F 小温度项 300ms、背景 100ms 延迟加 400ms 过渡。
+- 城市拖拽换位与落位分别为 200ms、150ms；搜索结果使用本地 AndroidX nested-scrolling 弹性容器，恢复原版无限拖动换算、0.5 拖动倍率、2.5 最大拖动率、黏性流体曲线和 250ms 回弹；不依赖 SmartRefresh 或 DynamicAnimation。
+- 首次启动隐私提示、两条协议链接、原版离线 HTML 许可页、系统定位权限与定位城市写入均已贯通。
+- API 37 大屏强制可调整窗口下，页面背景铺满窗口，原版手机内容画布限制为 480dp 并居中；四边系统栏、刘海和 IME Insets 已在主页面及全部次级页面验证。
+
+## 尚未完成的 1:1 项目
+
+- 仍需在更多密度、字库和厂商设备上建立确定性数据的截图/录屏基线，继续校准少量像素级字体基线、阴影和渲染差异。
+- 需要增加超过一屏城市/搜索结果的真机手感回归，校准拖拽边缘滚动、搜索惯性越界回弹与不同刷新率下的节奏。
+- 480dp 居中方案仍需在真实平板、折叠/展开、多窗口和侧边挖孔设备补测；这是设备矩阵验证，不是重新设计页面。
+- 上线前必须把原版离线协议正文替换为本项目真实的运营者、数据处理和第三方服务说明；当前原文仅作为 UI 与跳转复刻基准，不能视为新应用的法律文本。
+
+不要把“页面能打开”或“静态截图接近”视为 1:1 完成；每项交互都需要在设备上验证按下、拖拽、取消、切页、刷新和生命周期恢复状态。

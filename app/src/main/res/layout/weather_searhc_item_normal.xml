@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/head_line"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/add_city_divide_height"
+        android:background="@color/divider_listview"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/list_item_min_height"
+        android:background="@drawable/selector_listitem"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/rowdata_paddingleft"
+        android:paddingEnd="@dimen/rowdata_paddingright">
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="@color/selector_findcity_text_color"
+            android:textColorHighlight="@color/red"
+            android:textSize="@dimen/rowdata_textsize" />
+
+        <TextView
+            android:id="@+id/textview_pad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:text="@string/separator"
+            android:textColor="@color/selector_findcity_text_color"
+            android:textSize="@dimen/rowdata_textsize" />
+
+        <TextView
+            android:id="@+id/subcontent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="@color/selector_findcity_text_color"
+            android:textColorHighlight="@color/red"
+            android:textSize="@dimen/rowdata_textsize" />
+
+        <TextView
+            android:id="@+id/added_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="0.67dp"
+            android:singleLine="true"
+            android:text="@string/added_city"
+            android:textColor="@color/color_city_added"
+            android:textSize="@dimen/rowdata_textsize"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

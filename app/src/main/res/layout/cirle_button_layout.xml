@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.smartisan.weather.custom.RefreshViewGroupLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <ImageButton
+        android:id="@+id/imagebutton_refresh"
+        android:background="@drawable/selector_weather_refresh_sunny"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:contentDescription="@string/refresh"/>
+    <ImageView
+        android:id="@+id/imageView_refresh_icon"
+        android:background="@drawable/button_refresh_icon_sunny"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
+</com.smartisan.weather.custom.RefreshViewGroupLayout>

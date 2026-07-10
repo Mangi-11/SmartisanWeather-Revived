@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:startColor="@color/weather_bg_color_start_rain"
+        android:endColor="@color/weather_bg_color_end_rain"
+        android:angle="135"/>
+</shape>

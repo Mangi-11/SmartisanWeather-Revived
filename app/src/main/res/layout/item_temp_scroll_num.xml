@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:clipChildren="false"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/item_pager_top_box_temp_height">
+    <ImageView
+        android:id="@+id/textview_temp_sign"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"/>
+    <ImageView
+        android:id="@+id/imageview_temp_scroll_num1"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"
+        android:src="@drawable/num_1_1"/>
+    <ImageView
+        android:id="@+id/imageview_temp_scroll_num2"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"
+        android:src="@drawable/num_1_1"/>
+    <ImageView
+        android:id="@+id/imageview_temp_scroll_num3"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/weather_temp_anim_middle_margin_left"
+        android:src="@drawable/num_1_1"/>
+</LinearLayout>

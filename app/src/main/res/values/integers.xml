@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="weather_title_bar_text_dp_value">18</integer>
+</resources>

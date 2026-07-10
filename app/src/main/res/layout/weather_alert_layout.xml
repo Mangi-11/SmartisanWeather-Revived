@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/calendars"
+    android:background="@color/weather_alert_bg_color"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.smartisan.weather.widget.TitleBar
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/titlebar_height"/>
+    <ImageView
+        android:background="@drawable/title_bar_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/title_bar_shadow_height"/>
+    <ScrollView
+        android:scrollbars="none"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="always">
+        <com.smartisan.weather.custom.VerticalRecyclerView
+            android:id="@+id/recycler_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
+    </ScrollView>
+</LinearLayout>

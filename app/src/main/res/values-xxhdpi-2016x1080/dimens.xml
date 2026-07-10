@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="citylist_cityname_maxlength">212.0dp</dimen>
+    <dimen name="vp_top_box_line_width">336.0dp</dimen>
+</resources>

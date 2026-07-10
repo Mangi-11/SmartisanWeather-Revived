@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/city_list_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/list_bg">
+
+    <com.smartisan.weather.custom.WeatherListView
+        android:id="@+id/dragsortlistview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/title_bar"
+        android:clipToPadding="false"
+        android:divider="@null"
+        android:listSelector="@android:color/transparent"
+        android:overScrollMode="always"
+        app:adjust_item_animation_duration="200"
+        app:click_remove_id="@id/delete"
+        app:collapsed_height="1px"
+        app:drag_enabled="true"
+        app:drag_handle_id="@id/drag"
+        app:drag_scroll_start="0.25"
+        app:drag_start_mode="onDown"
+        app:drop_animation_duration="150"
+        app:float_alpha="1"
+        app:max_drag_scroll_speed="0.5"
+        app:slide_shuffle_speed="1" />
+
+    <LinearLayout
+        android:id="@+id/source_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/citylist_source_logo_margin_top"
+        android:layout_marginBottom="@dimen/citylist_source_logo_margin_bottom"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:text="@string/weather_pager_bottom_related_text"
+            android:textColor="@color/item_pager_content_lable_text_color"
+            android:textSize="@dimen/item_pager_content_lable_text_size" />
+
+        <TextView
+            android:id="@+id/source_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="@dimen/item_pager_content_lable_drawable_margin_left"
+            android:contentDescription="@string/weather_parnter_description"
+            android:textColor="@color/item_pager_content_parnter_text_color"
+            android:textSize="@dimen/item_pager_content_parnter_text_size"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <com.smartisan.weather.widget.TitleBar
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/titlebar_height"
+        android:layout_alignParentTop="true" />
+
+    <ImageView
+        android:id="@+id/title_bar_shadow_view"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/title_bar_shadow_height"
+        android:layout_below="@id/title_bar"
+        android:background="@drawable/title_bar_shadow"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no" />
+</RelativeLayout>

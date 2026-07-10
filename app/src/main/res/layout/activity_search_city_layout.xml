@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_city_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <com.smartisan.weather.widget.SearchBar
+        android:id="@+id/search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:hasRightIcon="false"
+        app:hintText="@string/hint_edittext_add_city" />
+
+    <FrameLayout
+        android:id="@+id/group_search_result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/search_bar"
+        android:background="@drawable/list_bg">
+
+        <com.smartisan.weather.custom.ElasticOverScrollLayout
+            android:id="@+id/sv_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="always">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingBottom="24dp"
+                android:scrollbars="none" />
+        </com.smartisan.weather.custom.ElasticOverScrollLayout>
+
+        <FrameLayout
+            android:id="@+id/empty_group"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/progress_medium_smartisanos_light"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/error_info_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/error_info_tv1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/weather_search_no_connect_info"
+                    android:textColor="@color/search_no_result_text_color1"
+                    android:textSize="@dimen/textview_search_nodata_size1"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/error_info_tv2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/textview_search_empty_margin1"
+                    android:text="@string/weather_search_no_connect_info_tip"
+                    android:textColor="@color/search_no_result_text_color2"
+                    android:textSize="@dimen/textview_search_nodata_size2" />
+
+                <Button
+                    android:id="@+id/btn_refresh"
+                    android:layout_width="120dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="@dimen/textview_search_empty_margin1"
+                    android:background="@drawable/selector_small_btn_standard"
+                    android:text="@string/weather_search_refresh"
+                    android:textColor="@color/search_error_button_text_color"
+                    android:textSize="@dimen/textview_search_error_button_size"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <ScrollView
+            android:id="@+id/hot_city_group"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="always"
+            android:scrollbars="none">
+
+            <include
+                android:id="@+id/hot_city_parent"
+                layout="@layout/weather_hot_city_layout" />
+        </ScrollView>
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/search_bar_shadow_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/search_bar"
+        android:background="@drawable/secondary_bar_shadow"
+        android:importantForAccessibility="no" />
+</RelativeLayout>

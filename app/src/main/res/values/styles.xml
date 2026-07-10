@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MainActivityTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/window_bg</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <style name="weather_theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">#ffffff</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="MenuDialogTheme" parent="@android:style/Theme.DeviceDefault.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.InputMethod</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <style name="PrivacyDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/privacy_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/privacy_dialog_exit</item>
+    </style>
+    <!-- 复刻自原版 StandardIconStyle：标准图标尺寸 + centerInside 缩放 -->
+    <style name="StandardIconStyle" parent="">
+        <item name="android:layout_width">@dimen/standard_icon_size</item>
+        <item name="android:layout_height">@dimen/standard_icon_size</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+    <!-- 复刻自原版 item_pager_title_bar_style：城市名标题样式 -->
+    <style name="item_pager_title_bar_style" parent="">
+        <item name="android:textSize">@dimen/title_text_size</item>
+        <item name="android:textColor">@color/title_color</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+</resources>

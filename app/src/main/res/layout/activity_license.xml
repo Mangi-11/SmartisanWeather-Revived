@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/license_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.smartisan.weather.widget.TitleBar
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/titlebar_height"
+        android:layout_alignParentTop="true"/>
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/title_bar"
+        android:overScrollMode="never"/>
+    <ImageView
+        android:id="@+id/title_bar_shadow_view"
+        android:background="@drawable/title_bar_shadow"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/title_bar_shadow_height"
+        android:layout_below="@+id/title_bar"/>
+</RelativeLayout>
