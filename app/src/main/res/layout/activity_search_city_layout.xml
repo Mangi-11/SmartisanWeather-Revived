@@ -6,18 +6,25 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <com.smartisan.weather.widget.SearchBar
-        android:id="@+id/search_bar"
+    <com.smartisan.weather.widget.InsetTopBarLayout
+        android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:hasRightIcon="false"
-        app:hintText="@string/hint_edittext_add_city" />
+        android:background="@color/white">
+
+        <com.smartisan.weather.widget.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hasRightIcon="false"
+            app:hintText="@string/hint_edittext_add_city" />
+    </com.smartisan.weather.widget.InsetTopBarLayout>
 
     <FrameLayout
         android:id="@+id/group_search_result"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/search_bar"
+        android:layout_below="@id/top_bar_surface"
         android:background="@drawable/list_bg">
 
         <com.smartisan.weather.custom.ElasticOverScrollLayout
@@ -110,7 +117,7 @@
         android:id="@+id/search_bar_shadow_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/search_bar"
+        android:layout_below="@id/top_bar_surface"
         android:background="@drawable/secondary_bar_shadow"
         android:importantForAccessibility="no" />
 </RelativeLayout>

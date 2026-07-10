@@ -5,9 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.MotionEvent
@@ -19,8 +17,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -45,6 +41,8 @@ import com.smartisan.weather.data.model.SearchResultCity
 import com.smartisan.weather.ui.navigation.WeatherTransitionActivity
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
+import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.SearchBar
 import kotlinx.coroutines.launch
 
@@ -97,13 +95,7 @@ class SearchCityActivity : WeatherTransitionActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requireCity = intent.getBooleanExtra(EXTRA_REQUIRE_CITY, false)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_search_city_layout)
 
         bindViews()
@@ -124,14 +116,10 @@ class SearchCityActivity : WeatherTransitionActivity(),
     private fun applySystemBarInsets() {
         val root = findViewById<View>(R.id.search_city_root)
         val initialLeft = root.paddingLeft
-        val initialTop = root.paddingTop
         val initialRight = root.paddingRight
         initialResultBottomPadding = resultGroup.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val safeDrawing = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
+            val safeDrawing = insets.safeDrawingInsets()
             navigationBarBottom = insets.getInsets(
                 WindowInsetsCompat.Type.navigationBars(),
             ).bottom
@@ -140,7 +128,6 @@ class SearchCityActivity : WeatherTransitionActivity(),
             val horizontalInsets = view.centeredPhoneContentInsets(safeDrawing)
             view.updatePadding(
                 left = initialLeft + horizontalInsets.left,
-                top = initialTop + safeDrawing.top,
                 right = initialRight + horizontalInsets.right,
             )
             applyResultBottomInset()

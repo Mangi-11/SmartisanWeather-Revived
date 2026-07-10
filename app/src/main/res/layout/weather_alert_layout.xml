@@ -5,10 +5,16 @@
     android:background="@color/weather_alert_bg_color"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.smartisan.weather.widget.TitleBar
-        android:id="@+id/title_bar"
+    <com.smartisan.weather.widget.InsetTopBarLayout
+        android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/titlebar_height"/>
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+        <com.smartisan.weather.widget.TitleBar
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/titlebar_height"/>
+    </com.smartisan.weather.widget.InsetTopBarLayout>
     <ImageView
         android:background="@drawable/title_bar_shadow"
         android:layout_width="match_parent"

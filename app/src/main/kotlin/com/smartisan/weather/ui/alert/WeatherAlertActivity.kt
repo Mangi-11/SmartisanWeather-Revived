@@ -1,22 +1,19 @@
 package com.smartisan.weather.ui.alert
 
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
+import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
-import androidx.core.content.IntentCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.smartisan.weather.R
 import com.smartisan.weather.custom.VerticalRecyclerView
 import com.smartisan.weather.data.model.WeatherAlert
 import com.smartisan.weather.util.Utility
 import com.smartisan.weather.util.centeredPhoneContentInsets
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
+import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.TitleBar
 
 /** 原版锤子天气风格的预警详情页。 */
@@ -28,13 +25,7 @@ class WeatherAlertActivity : ComponentActivity() {
             finish()
             return
         }
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableWeatherEdgeToEdge()
         setContentView(R.layout.weather_alert_layout)
 
         val root = findViewById<android.view.View>(R.id.calendars)
@@ -64,23 +55,18 @@ class WeatherAlertActivity : ComponentActivity() {
         recycler: VerticalRecyclerView,
     ) {
         val baseRootPaddingLeft = root.paddingLeft
-        val baseRootPaddingTop = root.paddingTop
         val baseRootPaddingRight = root.paddingRight
         val baseRecyclerPaddingBottom = recycler.paddingBottom
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
+            val bars = insets.safeDrawingInsets()
             val horizontalInsets = root.centeredPhoneContentInsets(bars)
             root.updatePadding(
                 left = baseRootPaddingLeft + horizontalInsets.left,
-                top = baseRootPaddingTop + bars.top,
                 right = baseRootPaddingRight + horizontalInsets.right,
             )
             recycler.updatePadding(bottom = baseRecyclerPaddingBottom + bars.bottom)
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.requestApplyInsets(root)
         root.doOnLayout { ViewCompat.requestApplyInsets(it) }

@@ -10,7 +10,7 @@
         android:id="@+id/dragsortlistview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/title_bar"
+        android:layout_below="@id/top_bar_surface"
         android:clipToPadding="false"
         android:divider="@null"
         android:listSelector="@android:color/transparent"
@@ -59,17 +59,24 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <com.smartisan.weather.widget.TitleBar
-        android:id="@+id/title_bar"
+    <com.smartisan.weather.widget.InsetTopBarLayout
+        android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/titlebar_height"
-        android:layout_alignParentTop="true" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@color/white">
+
+        <com.smartisan.weather.widget.TitleBar
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/titlebar_height" />
+    </com.smartisan.weather.widget.InsetTopBarLayout>
 
     <ImageView
         android:id="@+id/title_bar_shadow_view"
         android:layout_width="match_parent"
         android:layout_height="@dimen/title_bar_shadow_height"
-        android:layout_below="@id/title_bar"
+        android:layout_below="@id/top_bar_surface"
         android:background="@drawable/title_bar_shadow"
         android:contentDescription="@null"
         android:importantForAccessibility="no" />

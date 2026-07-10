@@ -2,7 +2,6 @@ package com.smartisan.weather.ui.citylist
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -16,12 +15,9 @@ import android.widget.AbsListView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
@@ -39,6 +35,8 @@ import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.Utility
 import com.smartisan.weather.util.centeredPhoneContentInsets
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
+import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.MenuDialog
 import com.smartisan.weather.widget.TitleBar
 import kotlinx.coroutines.launch
@@ -74,13 +72,7 @@ class CityListActivity : WeatherTransitionActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_city_list)
 
         setupTitleBar()
@@ -222,28 +214,23 @@ class CityListActivity : WeatherTransitionActivity() {
 
     private fun applySystemBarInsets(root: View) {
         val baseRootPaddingLeft = root.paddingLeft
-        val baseRootPaddingTop = root.paddingTop
         val baseRootPaddingRight = root.paddingRight
         val baseListPaddingBottom = listView.paddingBottom
         val sourceParams = sourceGroup.layoutParams as ViewGroup.MarginLayoutParams
         val baseSourceMarginBottom = sourceParams.bottomMargin
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
-            val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
+            val bars = insets.safeDrawingInsets()
             val horizontalInsets = root.centeredPhoneContentInsets(bars)
             root.updatePadding(
                 left = baseRootPaddingLeft + horizontalInsets.left,
-                top = baseRootPaddingTop + bars.top,
                 right = baseRootPaddingRight + horizontalInsets.right,
             )
             listView.updatePadding(bottom = baseListPaddingBottom + bars.bottom)
             sourceParams.bottomMargin = baseSourceMarginBottom + bars.bottom
             sourceGroup.layoutParams = sourceParams
             listView.post(::updateSourcePlacement)
-            WindowInsetsCompat.CONSUMED
+            insets
         }
         ViewCompat.requestApplyInsets(root)
         root.doOnLayout { ViewCompat.requestApplyInsets(it) }

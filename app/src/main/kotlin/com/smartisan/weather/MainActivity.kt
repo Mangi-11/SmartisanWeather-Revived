@@ -6,7 +6,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
@@ -19,14 +18,11 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
@@ -48,6 +44,8 @@ import com.smartisan.weather.ui.privacy.PrivacyConsentDialog
 import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
+import com.smartisan.weather.util.safeDrawingInsets
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -126,13 +124,7 @@ class MainActivity : ComponentActivity(), AbstractController {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_main)
 
         container = findViewById(R.id.group_container)
@@ -144,12 +136,9 @@ class MainActivity : ComponentActivity(), AbstractController {
             viewModel.setCurrentIndex(index)
         }
 
-        // 和原版一致：天气背景覆盖状态栏，只把前景内容下移一个状态栏高度。
+        // 天气背景和原版纯色保护层铺进状态栏，只移动前景交互内容。
         ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
-            val safeDrawing = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
+            val safeDrawing = insets.safeDrawingInsets()
             val horizontalInsets = view.centeredPhoneContentInsets(safeDrawing)
             view.updatePadding(
                 left = horizontalInsets.left,
@@ -262,7 +251,7 @@ class MainActivity : ComponentActivity(), AbstractController {
         }
     }
 
-    /** API 35+ keeps the real status bar transparent, so draw the original solid color below it. */
+    /** Recreates the original solid weather status-bar surface behind the transparent system bar. */
     private fun updateStatusBarScrim(backgroundRes: Int) {
         val colorRes = when (backgroundRes) {
             R.drawable.drawable_weather_bg_foggy -> R.color.weather_bg_color_end_foggy

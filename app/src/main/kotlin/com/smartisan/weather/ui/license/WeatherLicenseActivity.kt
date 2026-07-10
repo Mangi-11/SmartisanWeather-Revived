@@ -2,21 +2,18 @@ package com.smartisan.weather.ui.license
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import com.smartisan.weather.R
-import com.smartisan.weather.widget.TitleBar
 import com.smartisan.weather.util.centeredPhoneContentInsets
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
+import com.smartisan.weather.util.safeDrawingInsets
+import com.smartisan.weather.widget.TitleBar
 
 /**
  * Smartisan 隐私政策与最终用户许可协议页面。
@@ -36,13 +33,7 @@ class WeatherLicenseActivity : ComponentActivity() {
             return
         }
 
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_license)
 
         val root = findViewById<View>(R.id.license_root)
@@ -79,18 +70,13 @@ class WeatherLicenseActivity : ComponentActivity() {
 
     private fun applySystemBarInsets(root: View) {
         val initialRootPaddingLeft = root.paddingLeft
-        val initialRootPaddingTop = root.paddingTop
         val initialRootPaddingRight = root.paddingRight
         val initialRootPaddingBottom = root.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val safeDrawing = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or
-                    WindowInsetsCompat.Type.displayCutout(),
-            )
+            val safeDrawing = insets.safeDrawingInsets()
             val horizontalInsets = view.centeredPhoneContentInsets(safeDrawing)
             view.updatePadding(
                 left = initialRootPaddingLeft + horizontalInsets.left,
-                top = initialRootPaddingTop + safeDrawing.top,
                 right = initialRootPaddingRight + horizontalInsets.right,
                 bottom = initialRootPaddingBottom + safeDrawing.bottom,
             )
