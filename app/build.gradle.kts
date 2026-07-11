@@ -16,6 +16,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
 
@@ -49,10 +50,13 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room3.runtime)
-    implementation(libs.androidx.sqlite.bundled)
+    implementation(libs.androidx.sqlite.framework)
     implementation(libs.androidx.recyclerview)
     implementation(libs.kotlinx.coroutines.android)
     ksp(libs.androidx.room3.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.org.json)
+    androidTestImplementation(libs.androidx.test.core.ktx)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
 }

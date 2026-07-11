@@ -23,14 +23,9 @@ class CityRepository(context: Context) {
         entities.map { it.toModel() }
     }
 
-    /** 获取所有已保存城市（一次性） */
-    suspend fun getAllCities(): List<SavedCity> = withContext(Dispatchers.IO) {
-        dao.getAll().map { it.toModel() }
-    }
-
-    /** 按城市Key获取 */
-    suspend fun getCityByKey(key: String): SavedCity? = withContext(Dispatchers.IO) {
-        dao.findByKey(key)?.toModel()
+    /** 获取全部已保存城市 Key。 */
+    suspend fun getAllCityKeys(): Set<String> = withContext(Dispatchers.IO) {
+        dao.getAllKeys().toSet()
     }
 
     /** 添加城市（检查是否已存在） */
@@ -112,7 +107,7 @@ class CityRepository(context: Context) {
 
     /** 获取缓存的天气 JSON */
     suspend fun getCachedWeather(key: String): String? = withContext(Dispatchers.IO) {
-        dao.findByKey(key)?.weatherJson
+        dao.getWeatherJsonByKey(key)
     }
 
     /** 搜索城市。小米中国区接口一次返回完整结果，不提供分页。 */
@@ -139,10 +134,10 @@ class CityRepository(context: Context) {
 
     /** 检查城市是否已添加 */
     suspend fun isCityAdded(key: String): Boolean = withContext(Dispatchers.IO) {
-        dao.findByKey(key) != null
+        dao.existsByKey(key)
     }
 
-    private fun SavedCityEntity.toModel(): SavedCity = SavedCity(
+    private fun SavedCitySummary.toModel(): SavedCity = SavedCity(
         id = id,
         locationKey = locationKey,
         locationName = locationName,

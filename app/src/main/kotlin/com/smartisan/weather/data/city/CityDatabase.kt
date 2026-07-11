@@ -11,8 +11,7 @@ import androidx.room3.Query
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.room3.Transaction
-import androidx.room3.Update
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 
@@ -37,19 +36,51 @@ data class SavedCityEntity(
     val lastUpdate: Long = 0L,
 )
 
+/** 城市列表与页面导航需要的轻量投影，不读取天气缓存。 */
+data class SavedCitySummary(
+    val id: Int,
+    val locationKey: String,
+    val locationName: String,
+    val locationParentName: String,
+    val country: String,
+    val province: String,
+    val sortOrder: Int,
+)
+
+/** 替换定位城市时需要继承的缓存字段。 */
+data class SavedCityCache(
+    val weatherJson: String?,
+    val lastUpdate: Long,
+)
+
 @Dao
 interface SavedCityDao {
-    @Query("SELECT * FROM saved_cities ORDER BY sortOrder ASC")
-    fun observeAll(): Flow<List<SavedCityEntity>>
+    @Query(
+        """
+        SELECT id, locationKey, locationName, locationParentName, country, province, sortOrder
+        FROM saved_cities
+        ORDER BY sortOrder ASC
+        """
+    )
+    fun observeAll(): Flow<List<SavedCitySummary>>
 
-    @Query("SELECT * FROM saved_cities ORDER BY sortOrder ASC")
-    suspend fun getAll(): List<SavedCityEntity>
+    @Query("SELECT locationKey FROM saved_cities")
+    suspend fun getAllKeys(): List<String>
 
-    @Query("SELECT * FROM saved_cities WHERE locationKey = :key LIMIT 1")
-    suspend fun findByKey(key: String): SavedCityEntity?
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_cities WHERE locationKey = :key)")
+    suspend fun existsByKey(key: String): Boolean
 
-    @Query("SELECT * FROM saved_cities WHERE sortOrder = 1 LIMIT 1")
-    suspend fun getLocationCity(): SavedCityEntity?
+    @Query("SELECT sortOrder FROM saved_cities WHERE locationKey = :key LIMIT 1")
+    suspend fun getSortOrderByKey(key: String): Int?
+
+    @Query("SELECT locationKey FROM saved_cities WHERE sortOrder = 1 LIMIT 1")
+    suspend fun getLocationCityKey(): String?
+
+    @Query("SELECT weatherJson, lastUpdate FROM saved_cities WHERE locationKey = :key LIMIT 1")
+    suspend fun getCacheByKey(key: String): SavedCityCache?
+
+    @Query("SELECT weatherJson FROM saved_cities WHERE locationKey = :key LIMIT 1")
+    suspend fun getWeatherJsonByKey(key: String): String?
 
     @Query("SELECT COUNT(*) FROM saved_cities")
     suspend fun count(): Int
@@ -72,21 +103,18 @@ interface SavedCityDao {
         maxCities: Int,
         insertAfterKey: String?,
     ): InsertRegularCityResult {
-        if (findByKey(entity.locationKey) != null) {
+        if (existsByKey(entity.locationKey)) {
             return InsertRegularCityResult.ALREADY_EXISTS
         }
         if (count() >= maxCities) {
             return InsertRegularCityResult.LIMIT_EXCEEDED
         }
-        val insertAfterOrder = insertAfterKey?.let { findByKey(it)?.sortOrder }
+        val insertAfterOrder = insertAfterKey?.let { getSortOrderByKey(it) }
         val nextOrder = insertAfterOrder?.plus(1) ?: ((maxSortOrder() ?: 1) + 1)
         shiftSortOrdersAtOrAfter(nextOrder)
         insert(entity.copy(id = 0, sortOrder = nextOrder))
         return InsertRegularCityResult.SUCCESS
     }
-
-    @Update
-    suspend fun update(entity: SavedCityEntity)
 
     @Query("UPDATE saved_cities SET weatherJson = :json, lastUpdate = :time WHERE locationKey = :key")
     suspend fun updateWeather(key: String, json: String, time: Long)
@@ -103,18 +131,18 @@ interface SavedCityDao {
     /** 原子替换定位城市；只有在确实新增一行时才受城市数量上限约束。 */
     @Transaction
     suspend fun replaceLocationCity(entity: SavedCityEntity, maxCities: Int): Boolean {
-        val previousLocation = getLocationCity()
-        val targetCity = findByKey(entity.locationKey)
-        val targetAlreadyExists = targetCity != null
-        if (previousLocation == null && !targetAlreadyExists && count() >= maxCities) {
+        val previousLocationKey = getLocationCityKey()
+        val targetCache = getCacheByKey(entity.locationKey)
+        val targetAlreadyExists = targetCache != null
+        if (previousLocationKey == null && !targetAlreadyExists && count() >= maxCities) {
             return false
         }
-        previousLocation?.let { deleteByKey(it.locationKey) }
+        previousLocationKey?.let { deleteByKey(it) }
         deleteByKey(entity.locationKey)
         insert(
             entity.copy(
-                weatherJson = targetCity?.weatherJson,
-                lastUpdate = targetCity?.lastUpdate ?: 0L,
+                weatherJson = targetCache?.weatherJson,
+                lastUpdate = targetCache?.lastUpdate ?: 0L,
             )
         )
         return true
@@ -129,9 +157,6 @@ interface SavedCityDao {
             updateSortOrder(key, order)
         }
     }
-
-    @Query("SELECT * FROM saved_cities WHERE locationKey = :key LIMIT 1")
-    fun observeByKey(key: String): Flow<SavedCityEntity?>
 }
 
 enum class InsertRegularCityResult {
@@ -154,7 +179,7 @@ abstract class WeatherDatabase : RoomDatabase() {
                     context.applicationContext,
                     "weather.db",
                 )
-                    .setDriver(BundledSQLiteDriver())
+                    .setDriver(AndroidSQLiteDriver())
                     .setQueryCoroutineContext(Dispatchers.IO)
                     // 新项目不承诺开发期 schema 的历史兼容；遇到旧缓存直接重建。
                     .fallbackToDestructiveMigration()

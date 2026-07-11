@@ -46,9 +46,8 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
-            val keys = runCatching { cityRepository.getAllCities() }
-                .getOrDefault(emptyList())
-                .mapTo(mutableSetOf()) { it.locationKey }
+            val keys = runCatching { cityRepository.getAllCityKeys() }
+                .getOrDefault(emptySet())
             _uiState.update { it.copy(addedKeys = keys) }
         }
     }
