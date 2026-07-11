@@ -15,7 +15,7 @@ android {
         minSdk = 27
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -36,6 +36,18 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set(
+                output.versionName.map { versionName ->
+                    "SmartisanWeather-Revived-$versionName.apk"
+                }
+            )
+        }
     }
 }
 
