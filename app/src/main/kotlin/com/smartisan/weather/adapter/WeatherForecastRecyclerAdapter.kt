@@ -49,15 +49,16 @@ class WeatherForecastRecyclerAdapter(
     open inner class MyHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     inner class MyAirHolder(itemView: View) : MyHolder(itemView) {
+        val firstColumn: View = itemView.findViewById<View>(R.id.lable1).parent as View
         val p: ImageView = itemView.findViewById(R.id.lable1_img)
         val q: TextView = itemView.findViewById(R.id.lable1)
         val r: TextView = itemView.findViewById(R.id.lable1_content_c)
         val s: TextView = itemView.findViewById(R.id.lable1_content_f)
         val x: WeatherTempAnimView = itemView.findViewById(R.id.group_1)
+        val secondColumn: View = itemView.findViewById<View>(R.id.lable2).parent as View
         val t: ImageView = itemView.findViewById(R.id.lable2_img)
         val u: TextView = itemView.findViewById(R.id.lable2)
         val v: TextView = itemView.findViewById(R.id.lable2_content_c)
-        val w: TextView = itemView.findViewById(R.id.lable2_content_f)
         val y: WeatherTempAnimView = itemView.findViewById(R.id.group_2)
     }
 
@@ -157,6 +158,8 @@ class WeatherForecastRecyclerAdapter(
                 val size2 = (position - (if (forecasts!!.isNotEmpty()) forecasts!!.size else -1)) - 1
                 if (size2 < 0 || size2 > airList.size) return
                 val entry = airList[size2].split("=")
+                holder.firstColumn.visibility = if (entry[0].isBlank()) View.GONE else View.VISIBLE
+                holder.secondColumn.visibility = if (entry[2].isBlank()) View.GONE else View.VISIBLE
                 holder.q.text = entry[0]
                 holder.r.text = entry[1]
                 holder.u.text = entry[2]
@@ -170,10 +173,12 @@ class WeatherForecastRecyclerAdapter(
             val size3 = (position - (if (forecasts!!.isNotEmpty()) forecasts!!.size else -1)) - 1
             if (size3 < 0 || size3 > airList.size) return
             val entry = airList[size3].split("=")
+            holder.firstColumn.visibility = View.VISIBLE
+            holder.secondColumn.visibility = if (entry[3].isBlank()) View.GONE else View.VISIBLE
             holder.q.text = entry[0]
             holder.u.text = entry[3]
-            val compareStrC = entry[4]
-            val compareStrF = entry[5]
+            holder.v.text = entry[4]
+            holder.y.showCView(false)
             val feelC = entry[1]
             val feelF = entry[2]
             if ("UNKNOWN" == feelC.replace(str(R.string.weather_celsius_symbol), "").replace(str(R.string.weather_fahrenheit_symbol), "") ||
@@ -185,24 +190,10 @@ class WeatherForecastRecyclerAdapter(
                 holder.r.text = entry[1]
                 holder.s.text = entry[2]
             }
-            if ("a" == compareStrC) {
-                holder.v.text = ""
-                holder.w.text = ""
-            } else if ("UNKNOWN" == compareStrC.replace(str(R.string.weather_celsius_symbol), "") ||
-                "UNKNOWN" == compareStrF.replace(str(R.string.weather_fahrenheit_symbol), "")
-            ) {
-                holder.w.text = str(R.string.weather_null)
-                holder.v.text = str(R.string.weather_null)
-            } else {
-                holder.v.text = compareStrC
-                holder.w.text = compareStrF
-            }
             if (fValuesVisible) {
                 holder.x.showFView(false)
-                holder.y.showFView(false)
             } else {
                 holder.x.showCView(false)
-                holder.y.showCView(false)
             }
             holder.p.visibility = View.GONE
             holder.t.visibility = View.GONE
@@ -257,61 +248,10 @@ class WeatherForecastRecyclerAdapter(
             }
             val feelC = if (TextUtils.isEmpty(obs.getBodyFeelC())) str(R.string.weather_null) else obs.getBodyFeelC() + str(R.string.weather_celsius_symbol)
             val feelF = if (TextUtils.isEmpty(obs.getBodyFeelF())) str(R.string.weather_null) else obs.getBodyFeelF() + str(R.string.weather_fahrenheit_symbol)
-            var compareC = obs.getCompareC()
-            var compareF = obs.getCompareF()
-            var compareDesc = str(R.string.weather_forecast_warmer_than_yesterday)
-            val compareCValue = compareC?.toIntOrNull()
-            val compareFValue = compareF?.toIntOrNull()
-            if (compareCValue == null || compareFValue == null) {
-                compareC = str(R.string.weather_null)
-                compareF = str(R.string.weather_null)
-                compareDesc = ""
-            } else {
-                if (compareCValue < 0) {
-                    compareC = Math.abs(compareCValue).toString() + str(R.string.weather_celsius_symbol)
-                    compareF = Math.abs(compareFValue).toString() + str(R.string.weather_fahrenheit_symbol)
-                    compareDesc = str(R.string.weather_forecast_colder_than_yesterday)
-                } else if (compareCValue == 0) {
-                    compareC = "a"
-                    compareF = "a"
-                    compareDesc = str(R.string.weather_forecast_same_as_yesterday)
-                } else {
-                    compareC = compareCValue.toString() + str(R.string.weather_celsius_symbol)
-                    compareF = compareFValue.toString() + str(R.string.weather_fahrenheit_symbol)
-                }
-            }
-            if (isChinese) {
-                airList.add(String.format(str(R.string.weather_forecast_templet_icon), str(R.string.real_feel_temp), feelC, feelF, compareDesc, compareC, compareF))
-                viewTypes.add(3)
-            } else {
-                airList.add(String.format(str(R.string.weather_forecast_templet_icon), str(R.string.real_feel_temp), "", "", "", feelC, feelF))
-                viewTypes.add(3)
-                airList.add(String.format(str(R.string.weather_forecast_templet_icon), compareDesc, "", "", "", compareC, compareF))
-                viewTypes.add(3)
-            }
-            var agLevel = str(R.string.weather_null)
-            if (weather.allergy != null) {
-                agLevel = weather.allergy!!.getAgLevel()
-                    ?.takeIf(String::isNotBlank)
-                    ?: str(R.string.weather_null)
-            }
-            var uvLevel = str(R.string.weather_null)
-            if (weather.allergy != null) {
-                uvLevel = weather.allergy!!.getUvLevel()
-                    ?.takeIf(String::isNotBlank)
-                    ?: str(R.string.weather_null)
-            }
-            if (isChina) {
-                if (isChinese) {
-                    airList.add(String.format(str(R.string.weather_forecast_templet_normal), str(R.string.weather_forecast_ultraviolet_radiation), uvLevel, str(R.string.weather_forecast_allergy_index), agLevel))
-                    viewTypes.add(2)
-                } else {
-                    airList.add(String.format(str(R.string.weather_forecast_templet_normal), str(R.string.weather_forecast_ultraviolet_radiation), "", "", uvLevel))
-                    viewTypes.add(2)
-                    airList.add(String.format(str(R.string.weather_forecast_templet_normal), str(R.string.weather_forecast_allergy_index), "", "", agLevel))
-                    viewTypes.add(2)
-                }
-            }
+            val uvLevel = weather.allergy?.getUvLevel()?.takeIf(String::isNotBlank)
+            val uvLabel = if (isChina && uvLevel != null) str(R.string.weather_forecast_ultraviolet_radiation) else ""
+            airList.add(String.format(str(R.string.weather_forecast_templet_icon), str(R.string.real_feel_temp), feelC, feelF, uvLabel, uvLevel.orEmpty(), ""))
+            viewTypes.add(3)
             if (isChina) {
                 if (airList.isNotEmpty()) {
                     viewTypes.add(4)
@@ -353,10 +293,8 @@ class WeatherForecastRecyclerAdapter(
             } else if (type == 3 && vh is MyAirHolder) {
                 if (fValuesVisible) {
                     vh.x.showFView(true)
-                    vh.y.showFView(true)
                 } else {
                     vh.x.showCView(true)
-                    vh.y.showCView(true)
                 }
             }
         }

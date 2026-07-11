@@ -3,7 +3,8 @@ package com.smartisan.weather.bean
 import java.io.Serializable
 
 /**
- * 生活指数（过敏/紫外线），复刻自原版 com.smartisan.weather.bean.Allergy。
+ * 生活指数兼容 Bean（小米天气源只填充紫外线），复刻自原版
+ * com.smartisan.weather.bean.Allergy。
  * 原版字段 private + 显式 getter/setter。
  */
 class Allergy : Serializable {

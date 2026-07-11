@@ -31,9 +31,7 @@ data class WeatherAlert(
     val first: AlertInfo? get() = infos.firstOrNull()
 }
 
-/**
- * 生活指数（过敏指数 + 紫外线辐射）。
- */
+/** 兼容原 View 的生活指数模型；小米天气源只填充紫外线字段。 */
 data class Allergy(
     val agContent: String = "",
     val agLevel: String = "",

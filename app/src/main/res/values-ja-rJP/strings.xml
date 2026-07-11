@@ -59,21 +59,17 @@
     <string name="weather_current_day_text">きょう</string>
     <string name="weather_f_icon_description">%1$dºF</string>
     <string name="weather_fahrenheit_symbol">°F</string>
-    <string name="weather_forecast_allergy_index">アレルギー指数</string>
     <string name="weather_forecast_co_text">CO</string>
-    <string name="weather_forecast_colder_than_yesterday">昨日より低い</string>
     <string name="weather_forecast_date">%1$s.%2$s</string>
     <string name="weather_forecast_no2_text">NO₂</string>
     <string name="weather_forecast_o3_text">O₃</string>
     <string name="weather_forecast_pm10_text">PM10</string>
     <string name="weather_forecast_pm2_5_text">PM2.5</string>
-    <string name="weather_forecast_same_as_yesterday">温度は昨日と同じです</string>
     <string name="weather_forecast_so2_text">SO₂</string>
     <string name="weather_forecast_templet_icon">%1$s=%2$s=%3$s=%4$s=%5$s=%6$s</string>
     <string name="weather_forecast_templet_icon_second">%1$s=%2$s=%3$d=%4$s=%5$s=%6$d</string>
     <string name="weather_forecast_templet_normal">%1$s=%2$s=%3$s=%4$s</string>
     <string name="weather_forecast_ultraviolet_radiation">紫外線放射</string>
-    <string name="weather_forecast_warmer_than_yesterday">昨日より高い</string>
     <string name="weather_forecast_wind_level">階級</string>
     <string name="weather_hot_city">人気都市</string>
     <string name="weather_location_default_name">位置特定</string>
