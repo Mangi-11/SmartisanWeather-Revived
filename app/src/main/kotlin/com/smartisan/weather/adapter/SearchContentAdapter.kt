@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -18,8 +17,7 @@ import com.smartisan.weather.util.Utility
 /**
  * 原版城市搜索列表的 View 适配器。
  *
- * 加载项不再通过向数据中插入 `null` 表示，而是作为独立的 view type 管理；这样分页
- * 请求取消、失败或快速切换关键字时不会留下幽灵 footer。
+ * 小米城市搜索一次返回完整结果、不提供分页，因此这里只维护真实的城市行。
  */
 class SearchContentAdapter(
     private val context: Context,
@@ -32,29 +30,18 @@ class SearchContentAdapter(
     private val items = mutableListOf<WeatherSearchBean>()
     private var localCityIds: Set<String> = emptySet()
     private var searchKey: String = ""
-    private var loadState: Int = LOAD_STATE_NORMAL
     private var itemClickListener: OnItemClickListener? = null
     private val highlightColor = ContextCompat.getColor(context, R.color.highlight_text_color)
 
-    override fun getItemCount(): Int = items.size + if (showsLoadingFooter()) 1 else 0
-
-    override fun getItemViewType(position: Int): Int =
-        if (position == items.size) VIEW_TYPE_FOOTER else VIEW_TYPE_CITY
+    override fun getItemCount(): Int = items.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return if (viewType == VIEW_TYPE_FOOTER) {
-            FooterHolder(inflater.inflate(R.layout.weather_searhc_item_footerview, parent, false))
-        } else {
-            CityHolder(inflater.inflate(R.layout.weather_searhc_item_normal, parent, false))
-        }
+        return CityHolder(inflater.inflate(R.layout.weather_searhc_item_normal, parent, false))
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder) {
-            is CityHolder -> holder.bind(items[position], position)
-            is FooterHolder -> holder.bind()
-        }
+        (holder as CityHolder).bind(items[position], position)
     }
 
     fun submitData(cities: List<SearchResultCity>) {
@@ -79,15 +66,6 @@ class SearchContentAdapter(
         searchKey = key
         notifyDataSetChanged()
     }
-
-    fun setLoadState(state: Int) {
-        if (state == loadState) return
-        loadState = state
-        notifyDataSetChanged()
-    }
-
-    private fun showsLoadingFooter(): Boolean =
-        items.isNotEmpty() && loadState == LOAD_STATE_LOADING
 
     private inner class CityHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val content: TextView = itemView.findViewById(R.id.content)
@@ -143,26 +121,6 @@ class SearchContentAdapter(
                 }
             }
         }
-    }
-
-    private inner class FooterHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val progress: ProgressBar = itemView.findViewById(R.id.footer_progressbar)
-        private val content: TextView = itemView.findViewById(R.id.footer_content)
-
-        fun bind() {
-            progress.isVisible = true
-            content.setText(R.string.loading)
-        }
-    }
-
-    companion object {
-        const val LOAD_STATE_NORMAL = 0
-        const val LOAD_STATE_LOADING = 1
-        const val LOAD_STATE_COMPLETE = 2
-        const val LOAD_STATE_NO_MORE = 3
-
-        private const val VIEW_TYPE_CITY = 0
-        private const val VIEW_TYPE_FOOTER = 1
     }
 }
 

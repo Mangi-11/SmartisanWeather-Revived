@@ -49,6 +49,7 @@ class WeatherRepository(context: Context) {
         /** 简单的 JSON 序列化（避免引入 Gson） */
         fun weatherToJson(weather: Weather): String {
             val o = org.json.JSONObject()
+            o.put("provider", CACHE_PROVIDER)
             o.put("source", weather.source)
             o.put("weatherCode", weather.weatherCode)
             o.put("temp", weather.temp)
@@ -162,6 +163,9 @@ class WeatherRepository(context: Context) {
 
         fun jsonToWeather(json: String): Weather? = try {
             val o = org.json.JSONObject(json)
+            check(o.optString("provider") == CACHE_PROVIDER) {
+                "Weather cache belongs to an obsolete provider"
+            }
             val obs = o.optJSONObject("observe")
             val observe = if (obs != null) {
                 com.smartisan.weather.data.model.Observe(
@@ -301,5 +305,7 @@ class WeatherRepository(context: Context) {
         } catch (e: Exception) {
             null
         }
+
+        private const val CACHE_PROVIDER = "xiaomi-v1"
     }
 }

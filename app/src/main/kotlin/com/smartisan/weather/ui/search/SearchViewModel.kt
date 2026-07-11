@@ -22,8 +22,6 @@ data class SearchUiState(
     val results: List<SearchResultCity> = emptyList(),
     val hotCities: List<HotCity> = CityRepository.defaultHotCities,
     val isLoading: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val hasMore: Boolean = false,
     val isError: Boolean = false,
     val addedKeys: Set<String> = emptySet(),
 )
@@ -43,7 +41,6 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     val events = eventChannel.receiveAsFlow()
 
     private var searchJob: Job? = null
-    private var nextPage = 2
     private var insertAfterKey: String? = null
     private val addingKeys = mutableSetOf<String>()
 
@@ -59,15 +56,12 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
     fun updateQuery(text: String) {
         if (text == _uiState.value.query) return
         searchJob?.cancel()
-        nextPage = 2
         if (text.isBlank()) {
             _uiState.update {
                 it.copy(
                     query = text,
                     results = emptyList(),
                     isLoading = false,
-                    isLoadingMore = false,
-                    hasMore = false,
                     isError = false,
                 )
             }
@@ -79,43 +73,25 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
                 query = text,
                 results = emptyList(),
                 isLoading = true,
-                isLoadingMore = false,
-                hasMore = false,
                 isError = false,
             )
         }
         // 原版为输入即搜；取消上一请求后立即启动当前关键字请求。
-        searchJob = viewModelScope.launch { search(text.trim(), page = 1, append = false) }
+        searchJob = viewModelScope.launch { search(text.trim()) }
     }
 
     fun retry() {
         val query = _uiState.value.query.trim()
         if (query.isEmpty() || _uiState.value.isLoading) return
         searchJob?.cancel()
-        nextPage = 2
         _uiState.update {
             it.copy(
                 results = emptyList(),
                 isLoading = true,
-                isLoadingMore = false,
-                hasMore = false,
                 isError = false,
             )
         }
-        searchJob = viewModelScope.launch { search(query, page = 1, append = false) }
-    }
-
-    fun loadNextPage() {
-        val state = _uiState.value
-        val query = state.query.trim()
-        if (
-            query.isEmpty() || state.results.isEmpty() || !state.hasMore ||
-            state.isLoading || state.isLoadingMore
-        ) return
-
-        val page = nextPage
-        _uiState.update { it.copy(isLoadingMore = true) }
-        searchJob = viewModelScope.launch { search(query, page, append = true) }
+        searchJob = viewModelScope.launch { search(query) }
     }
 
     fun addCity(city: SearchResultCity) {
@@ -138,24 +114,16 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
-    private suspend fun search(query: String, page: Int, append: Boolean) {
-        val result = cityRepository.searchCitiesResult(query, page)
+    private suspend fun search(query: String) {
+        val result = cityRepository.searchCitiesResult(query)
         if (_uiState.value.query.trim() != query) return
 
         result.fold(
-            onSuccess = { pageItems ->
-                if (append) nextPage = page + 1
+            onSuccess = { items ->
                 _uiState.update { state ->
-                    val results = if (append) {
-                        (state.results + pageItems).distinctBy { it.cityId }
-                    } else {
-                        pageItems.distinctBy { it.cityId }
-                    }
                     state.copy(
-                        results = results,
+                        results = items.distinctBy { it.cityId },
                         isLoading = false,
-                        isLoadingMore = false,
-                        hasMore = pageItems.size >= PAGE_SIZE,
                         isError = false,
                     )
                 }
@@ -164,12 +132,8 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        isLoadingMore = false,
-                        isError = !append || state.results.isEmpty(),
+                        isError = true,
                     )
-                }
-                if (append) {
-                    eventChannel.send(SearchEvent.ShowMessage(R.string.weather_search_no_connect_info))
                 }
             },
         )
@@ -209,9 +173,5 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
                 addingKeys -= key
             }
         }
-    }
-
-    companion object {
-        private const val PAGE_SIZE = 20
     }
 }

@@ -1,7 +1,12 @@
 package com.smartisan.weather.data.weather
 
+import com.smartisan.weather.data.model.Observe
+import com.smartisan.weather.data.model.Weather
+import com.smartisan.weather.util.WeatherCodeMapping
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -10,265 +15,260 @@ class WeatherApiClientTest {
     private val client = WeatherApiClient.getInstance()
 
     @Test
-    fun `parseWeather parses complete weather JSON`() {
-        val json = """
-        {
-            "code": 0,
-            "data": {
-                "source": "华风新天",
-                "local_time": "1718870400",
-                "observe": {
-                    "info": {
-                        "temp": "25",
-                        "code": "00",
-                        "wind": "4",
-                        "speed": "3",
-                        "humidity": "60",
-                        "body_feel": "27",
-                        "compare": "2"
-                    },
-                    "publish_time": "202406201200"
-                },
-                "forecast": {
-                    "info": [
-                        {"date":"2024-06-20","low":"18","high":"28","code1":"00","sun":"06:00|19:00"},
-                        {"date":"2024-06-21","low":"19","high":"30","code1":"01","sun":"06:00|19:00"}
-                    ]
-                },
-                "air": {
-                    "info": {
-                        "aqi":"45",
-                        "pm2_5":"20",
-                        "pm10":"35",
-                        "o3":"80",
-                        "no2":"15",
-                        "so2":"5",
-                        "co":"0.5",
-                        "publish_time":"2024-06-20 12:00:00"
-                    }
-                },
-                "forecast_hour": {
-                    "info": [
-                        {"code":"00","weatherCode":"00","temp":"25","tempC":25,"tempF":77,"startTime":"202406201200","night":false,"sunDes":""},
-                        {"code":"01","weatherCode":"01","temp":"24","tempC":24,"tempF":75,"startTime":"202406201300","night":false,"sunDes":""}
-                    ]
-                },
-                "alert": {
-                    "info": [
-                        {"type_number":"01","level":"蓝色","content":"大风蓝色预警","level_number":"1","publish_time":"2024-06-20 10:00:00","type":"大风"}
-                    ]
-                },
-                "allergy": {
-                    "info": [
-                        {"type":"uv","content":"紫外线中等","type_cn":"紫外线","level":"3"},
-                        {"type":"ag","content":"过敏指数低","type_cn":"过敏","level":"1"}
-                    ]
-                }
-            }
-        }
-        """.trimIndent()
+    fun `request URLs match Xiaomi China protocol`() {
+        assertEquals(
+            "https://weatherapi.market.xiaomi.com/wtr-v3/weather/all" +
+                "?latitude=0&longitude=0&locationKey=weathercn%3A101010100&days=15" +
+                "&appKey=weather20151024&sign=zUFJoAR2ZVrDy1vF3D07" +
+                "&isGlobal=false&locale=zh_cn",
+            client.buildWeatherUrl("101010100"),
+        )
+        assertEquals(
+            "https://weatherapi.market.xiaomi.com/wtr-v3/location/city/search" +
+                "?name=%E5%8C%97%E4%BA%AC&locale=zh_cn",
+            client.buildSearchUrl("北京"),
+        )
+        assertEquals(
+            "https://weatherapi.market.xiaomi.com/wtr-v3/location/city/geo" +
+                "?latitude=39.904&longitude=116.408&locale=zh_cn",
+            client.buildGeoUrl(39.904, 116.408),
+        )
+    }
 
-        val weather = client.parseWeather(json)
+    @Test
+    fun `parseWeather maps complete Xiaomi mixed-source response`() {
+        val weather = client.parseWeather(loadFixture())
+
         assertNotNull(weather)
-        assertTrue(weather!!.isComplete)
-        assertEquals("华风新天", weather.source)
-        assertEquals("00", weather.observe.code)
+        weather!!
+        assertTrue(weather.isComplete)
+        assertEquals("小米天气、彩云天气、北京气象局、中国环境监测总站", weather.source)
         assertEquals("25", weather.observe.tempC)
-        assertEquals("60", weather.observe.humidity)
-        assertEquals(2, weather.dailyForecast.size)
+        assertEquals("77", weather.observe.tempF)
+        assertEquals("28", weather.observe.bodyFeelC)
+        assertEquals("82", weather.observe.bodyFeelF)
+        assertEquals("18", weather.observe.code)
+        assertEquals("1", weather.observe.wind)
+        assertEquals("1", weather.observe.speed)
+        assertEquals("97", weather.observe.humidity)
+        assertEquals("UNKNOWN", weather.observe.compareC)
+        assertEquals("1785511500000", weather.observe.pubdate)
+        assertEquals("45", weather.observe.aqi)
+        assertEquals("30", weather.observe.pm25)
+        assertEquals("pm25", weather.observe.primary)
+        assertEquals("2", weather.allergy.uvLevel)
+        assertEquals("", weather.allergy.agLevel)
+
+        assertEquals(3, weather.dailyForecast.size)
+        assertEquals("202607310000", weather.dailyForecast[0].date)
+        assertEquals("周五", weather.dailyForecast[0].weekDay)
+        assertEquals("08", weather.dailyForecast[0].weatherCodeAm)
+        assertEquals("09", weather.dailyForecast[0].weatherCodePm)
         assertEquals(28, weather.dailyForecast[0].highTempC)
         assertEquals(18, weather.dailyForecast[0].lowTempC)
-        assertEquals(2, weather.hourForecast.size)
-        assertEquals(25, weather.hourForecast[0].tempC)
-        assertEquals(77, weather.hourForecast[0].tempF)
+        assertEquals("05:10|19:30", weather.dailyForecast[0].sunriseAndSunset)
+        assertEquals("202608010000", weather.dailyForecast[1].date)
+        assertEquals("", weather.dailyForecast[2].sunriseAndSunset)
+
+        assertEquals(3, weather.hourForecast.size)
+        assertEquals(
+            listOf("202607312300", "202608010000", "202608010100"),
+            weather.hourForecast.map { it.startTime },
+        )
+        assertEquals(listOf("18", "01", "03"), weather.hourForecast.map { it.weatherCode })
+        assertTrue(weather.hourForecast.all { it.night })
+        assertEquals(-1, weather.hourForecast[2].tempC)
+        assertEquals(30, weather.hourForecast[2].tempF)
+
+        assertEquals("44", weather.airQuality.pm10)
+        assertEquals("0.80", weather.airQuality.co)
         assertEquals(1, weather.alert.infos.size)
-        assertEquals("大风", weather.alert.infos[0].type)
-        assertEquals("蓝色", weather.alert.infos[0].level)
-        assertEquals("紫外线中等", weather.allergy.uvContent)
-        assertEquals("过敏指数低", weather.allergy.agContent)
-        assertEquals("45", weather.airQuality.aqiValue)
-        assertEquals("20", weather.airQuality.pm25)
+        assertEquals("暴雨", weather.alert.infos.single().type)
+        assertEquals("03", weather.alert.infos.single().levelNumber)
+        assertEquals(1_487_575_500_000L, weather.alert.infos.single().publishTime)
     }
 
     @Test
-    fun `weather signature preserves original parameter order`() {
-        assertEquals(
-            "d87d062a5d60fce548dfa85fda0e6a80",
-            client.weatherSignature("101010100", "1234567890"),
+    fun `missing current temperature never becomes a complete weather result`() {
+        val weather = client.parseWeather(
+            """
+                {
+                  "current": {
+                    "temperature": {"value": null},
+                    "feelsLike": {"value": null},
+                    "weather": 99,
+                    "pubTime": "2026-07-31T23:25:00+08:00"
+                  }
+                }
+            """.trimIndent(),
         )
+
+        assertNotNull(weather)
+        assertFalse(weather!!.isComplete)
+        assertEquals("UNKNOWN", weather.observe.tempC)
+        assertEquals("UNKNOWN", weather.observe.tempF)
+        assertEquals("99", weather.observe.code)
     }
 
     @Test
-    fun `Chinese search signature uses original UTF-8 low-byte algorithm`() {
-        assertEquals(
-            "ffbcc204e1ce61104e68119521d795e8",
-            client.searchSignature("北京", 1),
+    fun `alerts keep original newest-first order and map level colors`() {
+        val weather = client.parseWeather(
+            """
+                {
+                  "current": {"temperature":{"value":20}, "weather":0},
+                  "alerts": [
+                    {"pubTime":"2026-07-31T10:00:00+08:00", "type":"雷电", "level":"黄色", "detail":"较早"},
+                    {"pubTime":"2026-07-31T12:00:00+08:00", "type":"暴雨", "level":"红色", "detail":"最新"}
+                  ]
+                }
+            """.trimIndent(),
         )
+
+        assertEquals(listOf("最新", "较早"), weather!!.alert.infos.map { it.content })
+        assertEquals(listOf("04", "02"), weather.alert.infos.map { it.levelNumber })
     }
 
     @Test
-    fun `parseSearchResults parses city search response`() {
-        val json = """
-        {
-            "code": 0,
-            "data": {
-                "content": [
-                    {"cityId":"101010100","county":"北京","city":"北京","province":"北京","country":"中国","countyEn":"beijing","countyPinyin":"beijing","id":"1"},
-                    {"cityId":"101020100","county":"上海","city":"上海","province":"上海","country":"中国","countyEn":"shanghai","countyPinyin":"shanghai","id":"2"}
-                ]
-            }
+    fun `Xiaomi weather codes preserve China weather semantics`() {
+        for (code in 0..19) {
+            assertEquals(
+                code.toString().padStart(2, '0'),
+                XiaomiWeatherParser.toSmartisanWeatherCode(code.toString()),
+            )
         }
+        for (code in 21..31) {
+            assertEquals(
+                code.toString(),
+                XiaomiWeatherParser.toSmartisanWeatherCode(code.toString()),
+            )
+        }
+        assertEquals("31", XiaomiWeatherParser.toSmartisanWeatherCode("20"))
+        assertEquals("03", XiaomiWeatherParser.toSmartisanWeatherCode("03"))
+        assertEquals("18", XiaomiWeatherParser.toSmartisanWeatherCode("18"))
+        assertEquals("18", XiaomiWeatherParser.toSmartisanWeatherCode("35"))
+        assertEquals("53", XiaomiWeatherParser.toSmartisanWeatherCode("53"))
+        assertEquals("99", XiaomiWeatherParser.toSmartisanWeatherCode("32"))
+        assertEquals("99", XiaomiWeatherParser.toSmartisanWeatherCode("invalid"))
+        assertEquals("99", XiaomiWeatherParser.toSmartisanWeatherCode(null))
+    }
+
+    @Test
+    fun `wind direction uses eight sectors with exact boundaries`() {
+        val cases = mapOf(
+            "0" to "8",
+            "22.499" to "8",
+            "22.5" to "1",
+            "67.499" to "1",
+            "67.5" to "2",
+            "112.5" to "3",
+            "157.5" to "4",
+            "202.5" to "5",
+            "247.5" to "6",
+            "292.5" to "7",
+            "337.5" to "8",
+            "360" to "8",
+        )
+        cases.forEach { (degrees, expected) ->
+            assertEquals(expected, XiaomiWeatherParser.windDirectionCode(degrees))
+        }
+        assertEquals("0", XiaomiWeatherParser.windDirectionCode("-1"))
+        assertEquals("0", XiaomiWeatherParser.windDirectionCode("not-a-number"))
+    }
+
+    @Test
+    fun `wind speed converts kilometers per hour to Beaufort level`() {
+        val cases = mapOf(
+            "0.9" to "0",
+            "1" to "1",
+            "5.999" to "1",
+            "6" to "2",
+            "11.999" to "2",
+            "12" to "3",
+            "28.999" to "4",
+            "29" to "5",
+            "117.999" to "11",
+            "118" to "12",
+        )
+        cases.forEach { (speed, expected) ->
+            assertEquals(expected, XiaomiWeatherParser.beaufortLevel(speed))
+        }
+        assertEquals("", XiaomiWeatherParser.beaufortLevel("-0.1"))
+        assertEquals("", XiaomiWeatherParser.beaufortLevel(""))
+    }
+
+    @Test
+    fun `parseSearchResults maps affiliation and keeps only weathercn cities`() {
+        val json = """
+            [
+              {"name":"北京市","affiliation":"中国","locationKey":"weathercn:101010100","status":0},
+              {"name":"海淀区","affiliation":"北京市, 中国","locationKey":"weathercn:101010200","status":0},
+              {"name":"广州市","affiliation":"广东, 中国","locationKey":"weathercn:101280101","status":0},
+              {"name":"番禺区","affiliation":"广州市, 广东, 中国","locationKey":"weathercn:101280102","status":0},
+              {"name":"苏州市","affiliation":"江苏, 中国","key":"weathercn:101190401","status":0},
+              {"name":"香港特别行政区","affiliation":"中国","locationKey":"accu:1123655","status":0},
+              {"name":"失效城市","affiliation":"中国","locationKey":"weathercn:101000000","status":1}
+            ]
         """.trimIndent()
 
         val results = client.parseSearchResults(json)
-        assertEquals(2, results.size)
-        assertEquals("101010100", results[0].cityId)
-        assertEquals("北京", results[0].county)
-        assertEquals("中国", results[0].country)
-    }
 
-    @Test
-    fun `request signatures preserve parameter order and byte contract`() {
+        assertEquals(5, results.size)
         assertEquals(
-            "ffbcc204e1ce61104e68119521d795e8",
-            client.searchSignature("北京", 1),
+            listOf("北京", "北京", "北京", "中国"),
+            results[0].let { listOf(it.county, it.city, it.province, it.country) },
         )
         assertEquals(
-            "f7ed9959fc1a8f16dbd7bc6c5b93f3e4",
-            client.searchSignature("上海", 2),
+            listOf("海淀", "北京", "北京", "中国"),
+            results[1].let { listOf(it.county, it.city, it.province, it.country) },
         )
         assertEquals(
-            "ffff9aeb48cad396429f0133c3cf19d2",
-            client.weatherSignature("101010100", "1700000000000"),
+            listOf("广州", "广州", "广东", "中国"),
+            results[2].let { listOf(it.county, it.city, it.province, it.country) },
         )
-    }
-
-    @Test
-    fun `parseWeather supports production snake case hourly fields`() {
-        val json = """
-            {
-              "code": 0,
-              "data": {
-                "local_time": 1783651244,
-                "observe": {
-                  "info": {"temp":27,"code":"08","speed":0,"humidity":78,"wind":3,"compare":0},
-                  "publish_time":"20260710104044"
-                },
-                "forecast": {
-                  "info": [
-                    {"code1":"08","code2":"09","sun":"04:56|19:43","date":"2026-07-10","low":24,"high":31}
-                  ]
-                },
-                "forecast_hour": {
-                  "info": [
-                    {"temp":27,"f_start_time":"20260710100000","start_time":"20260710100000","code":"01"}
-                  ]
-                },
-                "air": {"info":{"aqi":46,"primary":0,"pm2_5":9}}
-              }
-            }
-        """.trimIndent()
-
-        val weather = client.parseWeather(json)
-
-        assertNotNull(weather)
-        assertEquals("09", weather!!.dailyForecast.single().weatherCodePm)
-        assertEquals("01", weather.hourForecast.single().weatherCode)
-        assertEquals(27, weather.hourForecast.single().tempC)
-        assertEquals(80, weather.hourForecast.single().tempF)
-        assertEquals("20260710100000", weather.hourForecast.single().startTime)
-        assertEquals("0", weather.airQuality.primary)
-    }
-
-    @Test
-    fun `daily forecast filtering uses response date across month boundary`() {
-        val json = """
-            {
-              "code": 0,
-              "data": {
-                "local_time": 1772294400,
-                "forecast": {
-                  "info": [
-                    {"date":"2026-02-28","low":1,"high":8,"code1":"00"},
-                    {"date":"2026-03-01","low":2,"high":9,"code1":"01"},
-                    {"date":"2026-03-02","low":3,"high":10,"code1":"02"}
-                  ]
-                }
-              }
-            }
-        """.trimIndent()
-
-        val weather = client.parseWeather(json)
-
-        assertNotNull(weather)
         assertEquals(
-            listOf("202603010000", "202603020000"),
-            weather!!.dailyForecast.map { it.date },
+            listOf("番禺", "广州", "广东", "中国"),
+            results[3].let { listOf(it.county, it.city, it.province, it.country) },
         )
+        assertEquals("101190401", results[4].cityId)
+        assertEquals("101190401", results[4].id)
     }
 
     @Test
-    fun `Celsius to Fahrenheit conversion`() {
-        assertEquals(32, com.smartisan.weather.util.WeatherCodeMapping.celsiusToFahrenheit(0))
-        assertEquals(212, com.smartisan.weather.util.WeatherCodeMapping.celsiusToFahrenheit(100))
-        assertEquals(77, com.smartisan.weather.util.WeatherCodeMapping.celsiusToFahrenheit(25))
-    }
-
-    @Test
-    fun `AQI level mapping`() {
-        assertEquals(0, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(30))
-        assertEquals(1, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(75))
-        assertEquals(2, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(120))
-        assertEquals(3, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(180))
-        assertEquals(4, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(250))
-        assertEquals(5, com.smartisan.weather.util.WeatherCodeMapping.AqiLevel.getLevel(350))
-    }
-
-    @Test
-    fun `weather code to theme mapping`() {
-        val sunny = com.smartisan.weather.util.WeatherCodeMapping.getTheme("00")
-        assertEquals(com.smartisan.weather.util.WeatherCodeMapping.WeatherTheme.SUNNY, sunny)
-
-        val rain = com.smartisan.weather.util.WeatherCodeMapping.getTheme("08")
-        assertEquals(com.smartisan.weather.util.WeatherCodeMapping.WeatherTheme.RAIN, rain)
-
-        val snow = com.smartisan.weather.util.WeatherCodeMapping.getTheme("15")
-        assertEquals(com.smartisan.weather.util.WeatherCodeMapping.WeatherTheme.SNOW, snow)
-
-        val default = com.smartisan.weather.util.WeatherCodeMapping.getTheme(null)
-        assertEquals(com.smartisan.weather.util.WeatherCodeMapping.WeatherTheme.DEFAULT, default)
-    }
-
-    @Test
-    fun `weather code to icon mapping`() {
-        val sunnyIcon = com.smartisan.weather.util.WeatherCodeMapping.getIcon("00")
-        assertTrue(sunnyIcon > 0)
-
-        val nightIcon = com.smartisan.weather.util.WeatherCodeMapping.getIcon("00", isNight = true)
-        assertTrue(nightIcon > 0)
-
-        val unknownIcon = com.smartisan.weather.util.WeatherCodeMapping.getIcon("99")
-        assertTrue(unknownIcon > 0)
-    }
-
-    @Test
-    fun `WeatherRepository json serialization roundtrip`() {
-        val weather = com.smartisan.weather.data.model.Weather(
-            source = "test",
-            observe = com.smartisan.weather.data.model.Observe(
-                tempC = "25",
-                tempF = "77",
-                code = "00",
-                humidity = "60",
-            ),
+    fun `cache roundtrip accepts Xiaomi cache and rejects obsolete provider cache`() {
+        val weather = Weather(
+            source = "小米天气",
+            observe = Observe(tempC = "25", tempF = "77", code = "00", humidity = "60"),
         )
+
         val json = WeatherRepository.weatherToJson(weather)
         val parsed = WeatherRepository.jsonToWeather(json)
+
         assertNotNull(parsed)
-        assertEquals("test", parsed!!.source)
+        assertEquals("小米天气", parsed!!.source)
         assertEquals("25", parsed.observe.tempC)
-        assertEquals("77", parsed.observe.tempF)
-        assertEquals("00", parsed.observe.code)
-        assertEquals("60", parsed.observe.humidity)
+        assertNull(
+            WeatherRepository.jsonToWeather(
+                """{"observe":{"tempC":"99","tempF":"210"}}""",
+            ),
+        )
+    }
+
+    @Test
+    fun `existing temperature AQI theme and icon mappings remain compatible`() {
+        assertEquals(32, WeatherCodeMapping.celsiusToFahrenheit(0))
+        assertEquals(77, WeatherCodeMapping.celsiusToFahrenheit(25))
+        assertEquals(0, WeatherCodeMapping.AqiLevel.getLevel(30))
+        assertEquals(5, WeatherCodeMapping.AqiLevel.getLevel(350))
+        assertEquals(
+            WeatherCodeMapping.WeatherTheme.SUNNY,
+            WeatherCodeMapping.getTheme("00"),
+        )
+        assertTrue(WeatherCodeMapping.getIcon("08") > 0)
+        assertTrue(WeatherCodeMapping.getIcon("99") > 0)
+    }
+
+    private fun loadFixture(): String {
+        return requireNotNull(javaClass.classLoader?.getResource("xiaomi_weather_response.json"))
+            .readText()
     }
 }

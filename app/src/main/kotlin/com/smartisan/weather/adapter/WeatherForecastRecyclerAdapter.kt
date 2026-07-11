@@ -260,27 +260,24 @@ class WeatherForecastRecyclerAdapter(
             var compareC = obs.getCompareC()
             var compareF = obs.getCompareF()
             var compareDesc = str(R.string.weather_forecast_warmer_than_yesterday)
-            if (TextUtils.isEmpty(compareC)) {
+            val compareCValue = compareC?.toIntOrNull()
+            val compareFValue = compareF?.toIntOrNull()
+            if (compareCValue == null || compareFValue == null) {
                 compareC = str(R.string.weather_null)
                 compareF = str(R.string.weather_null)
+                compareDesc = ""
             } else {
-                try {
-                    val cVal = compareC!!.toInt()
-                    if (cVal < 0) {
-                        val colder = str(R.string.weather_forecast_colder_than_yesterday)
-                        compareC = Math.abs(cVal).toString() + str(R.string.weather_celsius_symbol)
-                        compareF = Math.abs(compareF!!.toInt()).toString() + str(R.string.weather_fahrenheit_symbol)
-                        compareDesc = colder
-                    } else if (cVal == 0) {
-                        compareC = "a"
-                        compareF = "a"
-                        compareDesc = str(R.string.weather_forecast_same_as_yesterday)
-                    } else if (cVal > 0) {
-                        compareC = compareC + str(R.string.weather_celsius_symbol)
-                        compareF = compareF + str(R.string.weather_fahrenheit_symbol)
-                    }
-                } catch (e: Exception) {
-                    DebugLog.log(DebugLog.TAG_EXCEPTION, "Temperature comparison parsing failed", e)
+                if (compareCValue < 0) {
+                    compareC = Math.abs(compareCValue).toString() + str(R.string.weather_celsius_symbol)
+                    compareF = Math.abs(compareFValue).toString() + str(R.string.weather_fahrenheit_symbol)
+                    compareDesc = str(R.string.weather_forecast_colder_than_yesterday)
+                } else if (compareCValue == 0) {
+                    compareC = "a"
+                    compareF = "a"
+                    compareDesc = str(R.string.weather_forecast_same_as_yesterday)
+                } else {
+                    compareC = compareCValue.toString() + str(R.string.weather_celsius_symbol)
+                    compareF = compareFValue.toString() + str(R.string.weather_fahrenheit_symbol)
                 }
             }
             if (isChinese) {
@@ -294,11 +291,15 @@ class WeatherForecastRecyclerAdapter(
             }
             var agLevel = str(R.string.weather_null)
             if (weather.allergy != null) {
-                agLevel = weather.allergy!!.getAgLevel() ?: ""
+                agLevel = weather.allergy!!.getAgLevel()
+                    ?.takeIf(String::isNotBlank)
+                    ?: str(R.string.weather_null)
             }
             var uvLevel = str(R.string.weather_null)
             if (weather.allergy != null) {
-                uvLevel = weather.allergy!!.getUvLevel() ?: ""
+                uvLevel = weather.allergy!!.getUvLevel()
+                    ?.takeIf(String::isNotBlank)
+                    ?: str(R.string.weather_null)
             }
             if (isChina) {
                 if (isChinese) {

@@ -1,0 +1,102 @@
+{
+  "current": {
+    "feelsLike": {"unit": "℃", "value": "28"},
+    "humidity": {"unit": "%", "value": "97"},
+    "pressure": {"unit": "hPa", "value": "997"},
+    "pubTime": "2026-07-31T23:25:00+08:00",
+    "temperature": {"unit": "℃", "value": "25"},
+    "uvIndex": "2",
+    "visibility": {"unit": "km", "value": "8"},
+    "weather": "18",
+    "wind": {
+      "direction": {"unit": "°", "value": "42.0"},
+      "speed": {"unit": "km/h", "value": "3.0"}
+    }
+  },
+  "forecastDaily": {
+    "aqi": {"status": 0, "value": [45, 52, 60, 61]},
+    "precipitationProbability": {"status": 0, "value": [80, 40, 10, 10]},
+    "pubTime": "2026-07-31T00:00:00+08:00",
+    "status": 0,
+    "sunRiseSet": {
+      "status": 0,
+      "value": [
+        {"from": "2026-07-31T05:10:00+08:00", "to": "2026-07-31T19:30:00+08:00"},
+        {"from": "2026-08-01T05:11:00+08:00", "to": "2026-08-01T19:29:00+08:00"}
+      ]
+    },
+    "temperature": {
+      "status": 0,
+      "unit": "℃",
+      "value": [
+        {"from": "28", "to": "18"},
+        {"from": 30, "to": 19},
+        {"from": "27", "to": "17"}
+      ]
+    },
+    "weather": {
+      "status": 0,
+      "value": [
+        {"from": "8", "to": "9"},
+        {"from": 1, "to": 2},
+        {"from": "03", "to": "03"},
+        {"from": 0, "to": 0}
+      ]
+    },
+    "wind": {
+      "direction": {"status": 0, "value": [{"from": "42", "to": "90"}, {"from": "90", "to": "180"}, {"from": "180", "to": "270"}, {"from": "0", "to": "0"}]},
+      "speed": {"status": 0, "value": [{"from": "3", "to": "6"}, {"from": "6", "to": "12"}, {"from": "12", "to": "20"}, {"from": "1", "to": "1"}]}
+    }
+  },
+  "forecastHourly": {
+    "status": 0,
+    "temperature": {
+      "pubTime": "2026-07-31T23:00:00+08:00",
+      "status": 0,
+      "unit": "℃",
+      "value": [25, "24", -1]
+    },
+    "weather": {
+      "pubTime": "2026-07-31T23:00:00+08:00",
+      "status": 0,
+      "value": [18, "1", "03"]
+    },
+    "wind": {
+      "status": 0,
+      "value": [
+        {"datetime": "2026-07-31T23:00:00.000+08:00", "direction": "42", "speed": "3"}
+      ]
+    }
+  },
+  "aqi": {
+    "aqi": "45",
+    "co": "0.80",
+    "no2": "12",
+    "o3": "59",
+    "pm10": "44",
+    "pm25": "30",
+    "primary": "pm25",
+    "pubTime": "2026-07-31T23:00:00+08:00",
+    "so2": "4",
+    "src": "中国环境监测总站",
+    "status": 0
+  },
+  "alerts": [
+    {
+      "locationKey": "weathercn:101010100",
+      "alertId": "fixture-alert",
+      "pubTime": "2017-02-20T15:25:00+08:00",
+      "title": "北京发布暴雨橙色预警",
+      "type": "暴雨",
+      "level": "橙色",
+      "detail": "预计未来三小时有强降雨，请注意防范。"
+    }
+  ],
+  "brandInfo": {
+    "brands": [
+      {"brandId": "caiyun", "names": {"zh_CN": "彩云天气"}},
+      {"brandId": "weatherbj", "names": {"zh_CN": "北京气象局"}}
+    ]
+  },
+  "updateTime": 1785511500000
+}

@@ -115,17 +115,23 @@ class CityRepository(context: Context) {
         dao.findByKey(key)?.weatherJson
     }
 
-    /** 搜索城市 */
-    suspend fun searchCities(query: String, page: Int = 1): List<SearchResultCity> = withContext(Dispatchers.IO) {
-        apiClient.searchCities(query, page)
+    /** 搜索城市。小米中国区接口一次返回完整结果，不提供分页。 */
+    suspend fun searchCities(query: String): List<SearchResultCity> = withContext(Dispatchers.IO) {
+        apiClient.searchCities(query)
     }
 
     /** 搜索城市，保留请求失败信息供搜索页区分错误态与空结果。 */
-    suspend fun searchCitiesResult(
-        query: String,
-        page: Int = 1,
-    ): Result<List<SearchResultCity>> = withContext(Dispatchers.IO) {
-        apiClient.searchCitiesResult(query, page)
+    suspend fun searchCitiesResult(query: String): Result<List<SearchResultCity>> =
+        withContext(Dispatchers.IO) {
+            apiClient.searchCitiesResult(query)
+        }
+
+    /** 用天气服务的坐标反查接口直接取得 canonical `weathercn` 城市。 */
+    suspend fun resolveCityByCoordinates(
+        latitude: Double,
+        longitude: Double,
+    ): Result<SearchResultCity?> = withContext(Dispatchers.IO) {
+        apiClient.resolveCityByCoordinatesResult(latitude, longitude)
     }
 
     /** 城市数量 */

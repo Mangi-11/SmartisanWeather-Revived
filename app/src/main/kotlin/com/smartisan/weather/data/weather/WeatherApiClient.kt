@@ -1,34 +1,17 @@
 package com.smartisan.weather.data.weather
 
-import android.net.Uri
 import android.util.Log
 import com.smartisan.weather.BuildConfig
-import com.smartisan.weather.data.model.AirQuality
-import com.smartisan.weather.data.model.Allergy
-import com.smartisan.weather.data.model.AlertInfo
-import com.smartisan.weather.data.model.DailyForecast
-import com.smartisan.weather.data.model.HourForecast
-import com.smartisan.weather.data.model.Observe
 import com.smartisan.weather.data.model.SearchResultCity
 import com.smartisan.weather.data.model.Weather
-import com.smartisan.weather.data.model.WeatherAlert
-import com.smartisan.weather.util.WeatherCodeMapping
 import java.io.IOException
 import java.io.InputStreamReader
+import java.math.BigDecimal
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.ResolverStyle
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
-import org.json.JSONArray
-import org.json.JSONObject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -44,40 +27,34 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 /**
- * 天气 API 客户端。
+ * 小米天气中国区客户端。
  *
- * 完整复刻原版 WeatherDataRepositoryV3Impl + RepoUtils + WeatherFindCityRequest 的功能：
- * - API 签名算法：MD5(queryString_without_ampersand + "smartisan_weather_api")
- * - 天气数据请求：https://api-weather.smartisan.com/v3/info.php
- * - 城市搜索：https://api-weather.smartisan.com/v3/info/getCity
- * - JSON 解析：observe / forecast / air / forecast_hour / alert / allergy
+ * 小米的 `weather/all` 是混合数据接口：城市级天气、彩云网格数据和中国环境监测总站
+ * 空气质量会被合并成一次响应。应用只使用 `weathercn:` 城市，不接入第二天气源。
  */
 class WeatherApiClient private constructor() {
 
     companion object {
         private const val TAG = "WeatherApiClient"
-        private const val SERVER_URL_BASE = "https://api-weather.smartisan.com/v3/info.php"
-        private const val SEARCH_URL = "https://api-weather.smartisan.com/v3/info/getCity"
-        private const val SECRET_KEY = "smartisan_weather_api"
-        private const val APP_SOURCE = "com.android.providers.weather"
-        private const val WEATHER_FIELDS = "forecast,observe,air,forecast_hour,alert,allergy"
-        private const val CONNECT_TIMEOUT = 3000
-        private const val READ_TIMEOUT = 15000
+        private const val API_BASE_URL = "https://weatherapi.market.xiaomi.com/wtr-v3"
+        private const val WEATHER_URL = "$API_BASE_URL/weather/all"
+        private const val SEARCH_URL = "$API_BASE_URL/location/city/search"
+        private const val GEO_URL = "$API_BASE_URL/location/city/geo"
+
+        // 小米公开客户端协议中的固定标识，不是用户密钥，也不应写入日志。
+        private const val APP_KEY = "weather20151024"
+        private const val SIGN = "zUFJoAR2ZVrDy1vF3D07"
+        private const val LOCATION_KEY_PREFIX = "weathercn:"
+        private const val LOCALE = "zh_cn"
+        private const val FORECAST_DAYS = "15"
+
+        private const val CONNECT_TIMEOUT = 3_000
+        private const val READ_TIMEOUT = 15_000
         private const val MAX_RETRIES = 3
         private const val RETRY_BACKOFF_MILLIS = 200L
         private const val MAX_CONCURRENT_REQUESTS = 4
-        private val API_ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(8)
-        private val PUBLISH_TIME_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("uuuuMMddHHmm", Locale.ROOT)
-                .withResolverStyle(ResolverStyle.STRICT)
-        private val ALERT_TIME_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss", Locale.ROOT)
-                .withResolverStyle(ResolverStyle.STRICT)
 
-        /**
-         * 所有客户端实例（当前为单例）共享同一个许可池，避免主页面一次为全部城市
-         * 启动无限量的阻塞连接；城市搜索也计入同一网络预算。
-         */
+        /** 主页面会同时刷新多座城市，搜索和定位请求也共享同一网络预算。 */
         private val requestSemaphore = Semaphore(MAX_CONCURRENT_REQUESTS)
 
         @Volatile
@@ -89,72 +66,51 @@ class WeatherApiClient private constructor() {
             }
     }
 
-    /** MD5 签名：MD5(data + salt) → 32位小写hex */
-    private fun md5(data: String, salt: String): String {
-        return try {
-            val md = MessageDigest.getInstance("MD5")
-            val chars = (data + salt).toCharArray()
-            val bytes = ByteArray(chars.size)
-            for (i in chars.indices) bytes[i] = chars[i].code.toByte()
-            val digest = md.digest(bytes)
-            val sb = StringBuilder()
-            for (b in digest) {
-                val v = b.toInt() and 0xff
-                if (v < 16) sb.append('0')
-                sb.append(Integer.toHexString(v))
-            }
-            sb.toString()
-        } catch (e: Exception) {
-            ""
-        }
+    /**
+     * 构建混合天气请求。
+     *
+     * 当前服务端会按 [cityId] 解析彩云所需的标准坐标；线上交叉验证表明传入 `0,0`、
+     * 任意坐标或城市标准坐标均会规范化为相同城市数据，因此遵循小米文档使用固定值。
+     */
+    fun buildWeatherUrl(cityId: String): String {
+        val normalizedCityId = normalizeCityId(cityId)
+        require(normalizedCityId.matches(CHINA_CITY_ID)) { "Invalid China weather city id" }
+        return buildUrl(
+            WEATHER_URL,
+            listOf(
+                "latitude" to "0",
+                "longitude" to "0",
+                "locationKey" to "$LOCATION_KEY_PREFIX$normalizedCityId",
+                "days" to FORECAST_DAYS,
+                "appKey" to APP_KEY,
+                "sign" to SIGN,
+                "isGlobal" to "false",
+                "locale" to LOCALE,
+            ),
+        )
     }
 
-    /** 构建天气数据请求 URL */
-    fun buildWeatherUrl(cityId: String, versionCode: String = "104"): String {
-        val requestTime = System.currentTimeMillis().toString()
-        val uriBuilder = Uri.parse(SERVER_URL_BASE).buildUpon()
-            .appendQueryParameter("app", APP_SOURCE)
-            .appendQueryParameter("city_id", cityId)
-            .appendQueryParameter("fields", WEATHER_FIELDS)
-            .appendQueryParameter("rtime", requestTime)
-            .appendQueryParameter("vcode", versionCode)
-
-        val key = weatherSignature(cityId, requestTime, versionCode)
-        uriBuilder.appendQueryParameter("key", key)
-        return uriBuilder.build().toString()
-    }
-
-    internal fun weatherSignature(
-        cityId: String,
-        requestTime: String,
-        versionCode: String = "104",
-    ): String = md5(
-        "app=$APP_SOURCE" +
-            "city_id=$cityId" +
-            "fields=$WEATHER_FIELDS" +
-            "rtime=$requestTime" +
-            "vcode=$versionCode",
-        SECRET_KEY,
+    /** 小米城市搜索没有分页；服务端一次最多返回二十条。 */
+    fun buildSearchUrl(query: String): String = buildUrl(
+        SEARCH_URL,
+        listOf(
+            "name" to query.trim(),
+            "locale" to LOCALE,
+        ),
     )
 
-    /** 构建城市搜索 URL */
-    fun buildSearchUrl(query: String, page: Int): String {
-        // 原版服务端按 UTF-8 字节签名，而不是直接按 Unicode code point 截断。
-        val key = searchSignature(query, page)
-        return Uri.parse(SEARCH_URL).buildUpon()
-            .appendQueryParameter("q", query)
-            .appendQueryParameter("page", page.toString())
-            .appendQueryParameter("size", "20")
-            .appendQueryParameter("key", key)
-            .build().toString()
-    }
-
-    internal fun searchSignature(query: String, page: Int): String {
-        val signingQuery = String(
-            query.toByteArray(StandardCharsets.UTF_8),
-            StandardCharsets.ISO_8859_1,
+    /** 使用天气服务自己的坐标反查，避免设备 Geocoder 的语言和厂商差异。 */
+    fun buildGeoUrl(latitude: Double, longitude: Double): String {
+        require(latitude.isFinite() && latitude in -90.0..90.0) { "Invalid latitude" }
+        require(longitude.isFinite() && longitude in -180.0..180.0) { "Invalid longitude" }
+        return buildUrl(
+            GEO_URL,
+            listOf(
+                "latitude" to latitude.toPlainCoordinate(),
+                "longitude" to longitude.toPlainCoordinate(),
+                "locale" to LOCALE,
+            ),
         )
-        return md5("page=$page" + "q=$signingQuery" + "size=20", SECRET_KEY)
     }
 
     /** HTTP GET：最多四路并发，并让阻塞连接随调用协程一起取消。 */
@@ -184,7 +140,6 @@ class WeatherApiClient private constructor() {
             }
 
             if (attempt < MAX_RETRIES - 1) {
-                // delay 是可取消的；线性短退避足以避免瞬时故障时紧密重连。
                 delay(RETRY_BACKOFF_MILLIS * (attempt + 1L))
             }
         }
@@ -192,13 +147,12 @@ class WeatherApiClient private constructor() {
     }
 
     /**
-     * `runInterruptible` 负责中断执行阻塞 I/O 的线程；部分 HttpURLConnection
-     * 实现不会可靠响应线程中断，因此取消回调还会主动 disconnect 当前连接。
+     * `runInterruptible` 会中断阻塞 I/O；取消观察器同时主动 disconnect，兼容不可靠响应
+     * 线程中断的 HttpURLConnection 实现。
      */
     private suspend fun executeGet(url: String): String = coroutineScope {
         val requestJob = currentCoroutineContext().job
         val activeConnection = AtomicReference<HttpURLConnection?>()
-        // 与请求同属一个结构化作用域；父协程一旦取消，finally 会立即断开连接。
         val cancellationWatcher = launch(start = CoroutineStart.UNDISPATCHED) {
             try {
                 awaitCancellation()
@@ -219,7 +173,6 @@ class WeatherApiClient private constructor() {
                     connection.readTimeout = READ_TIMEOUT
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("Accept", "application/json")
-                    // 不手动声明 gzip — HttpURLConnection 会自动处理 Content-Encoding: gzip。
                     val statusCode = connection.responseCode
                     requestJob.ensureActive()
                     if (statusCode != HttpURLConnection.HTTP_OK) {
@@ -239,38 +192,65 @@ class WeatherApiClient private constructor() {
         }
     }
 
-    /** 获取天气数据 */
     suspend fun fetchWeather(cityId: String): Weather? {
         return try {
-            val json = httpGet(buildWeatherUrl(cityId))
-            parseWeather(json)
+            parseWeather(httpGet(buildWeatherUrl(cityId))).also { weather ->
+                when {
+                    weather == null -> debugWarning("Weather response could not be parsed")
+                    !weather.isComplete -> debugWarning("Weather response is incomplete")
+                }
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (error: IOException) {
+        } catch (error: Exception) {
             debugWarning("Weather request failed: ${error.javaClass.simpleName}")
             null
         }
     }
 
-    /** 搜索城市 */
-    suspend fun searchCities(query: String, page: Int = 1): List<SearchResultCity> {
-        return searchCitiesResult(query, page).getOrElse { emptyList() }
-    }
+    suspend fun searchCities(query: String): List<SearchResultCity> =
+        searchCitiesResult(query).getOrElse { emptyList() }
 
-    /** 搜索城市，并保留“网络/服务失败”和“成功但无结果”的区别供 UI 展示。 */
-    suspend fun searchCitiesResult(query: String, page: Int = 1): Result<List<SearchResultCity>> {
-        if (query.isBlank()) return Result.success(emptyList())
+    /** 保留“请求失败”和“成功但无结果”的区别供搜索页展示。 */
+    suspend fun searchCitiesResult(query: String): Result<List<SearchResultCity>> {
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isEmpty()) return Result.success(emptyList())
         return try {
-            Result.success(parseSearchResultsOrThrow(httpGet(buildSearchUrl(query, page))))
+            Result.success(parseLocationResultsOrThrow(httpGet(buildSearchUrl(normalizedQuery))))
         } catch (cancelled: CancellationException) {
-            // Result.runCatching 会吞掉协程取消；这里必须保持结构化并发语义。
             throw cancelled
         } catch (error: Exception) {
             debugWarning("City search failed: ${error.javaClass.simpleName}")
-            // 不把底层异常（其 message 可能包含完整 URL）暴露给上层或崩溃日志。
             Result.failure(IOException("City search request failed"))
         }
     }
+
+    /** 坐标反查可能成功但不含中国天气城市，因此结果本身可为空。 */
+    suspend fun resolveCityByCoordinatesResult(
+        latitude: Double,
+        longitude: Double,
+    ): Result<SearchResultCity?> {
+        return try {
+            val cities = parseLocationResultsOrThrow(httpGet(buildGeoUrl(latitude, longitude)))
+            Result.success(cities.firstOrNull())
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            debugWarning("Coordinate city lookup failed: ${error.javaClass.simpleName}")
+            Result.failure(IOException("Coordinate city lookup failed"))
+        }
+    }
+
+    fun parseWeather(json: String): Weather? = XiaomiWeatherParser.parseWeather(json)
+
+    fun parseSearchResults(json: String): List<SearchResultCity> =
+        runCatching { parseLocationResultsOrThrow(json) }.getOrElse {
+            debugWarning("Failed to parse city response: ${it.javaClass.simpleName}")
+            emptyList()
+        }
+
+    private fun parseLocationResultsOrThrow(json: String): List<SearchResultCity> =
+        XiaomiWeatherParser.parseLocationResults(json)
 
     private fun debugWarning(message: String) {
         if (BuildConfig.DEBUG) Log.w(TAG, message)
@@ -285,325 +265,20 @@ class WeatherApiClient private constructor() {
                 statusCode == 429 ||
                 statusCode in 500..599
     }
-
-    // ====== JSON 解析 ======
-
-    /** 解析天气数据 JSON */
-    fun parseWeather(jsonStr: String): Weather? {
-        return try {
-            val root = JSONObject(jsonStr)
-            if (root.optInt("code", -1) != 0 || !root.has("data") || root.isNull("data")) {
-                debugWarning("Weather API returned code=${root.optInt("code", -1)}")
-                return null
-            }
-            val data = root.optJSONObject("data") ?: return null
-            parseWeatherData(data)
-        } catch (e: Exception) {
-            debugWarning("Failed to parse weather response: ${e.javaClass.simpleName}")
-            null
-        }
-    }
-
-    private fun parseWeatherData(data: JSONObject): Weather {
-        val weather = Weather(source = data.optString("source"))
-
-        // observe → 当前天气
-        val observe = if (data.has("observe") && !data.isNull("observe")) {
-            parseObserve(data.optJSONObject("observe")!!)
-        } else Observe()
-        var observeVal = observe
-
-        // air → 空气质量
-        var airQuality = AirQuality()
-        if (data.has("air") && !data.isNull("air")) {
-            val air = data.optJSONObject("air")!!
-            airQuality = parseAirQuality(air)
-            observeVal = observeVal.copy(
-                aqi = airQuality.aqiValue,
-                primary = airQuality.primary,
-                pm25 = airQuality.pm25,
-                pm10 = airQuality.pm10,
-                o3 = airQuality.o3,
-                no2 = airQuality.no2,
-                so2 = airQuality.so2,
-                co = airQuality.co,
-            )
-        }
-
-        // local_time → 本地时间
-        val localTimeSeconds = data.optString("local_time")
-            .toLongOrNull()
-            ?.takeIf { it > 0L }
-        if (localTimeSeconds != null && observeVal.localTime.isBlank()) {
-            val startOfApiDay = Instant.ofEpochSecond(localTimeSeconds)
-                .atOffset(API_ZONE_OFFSET)
-                .toLocalDate()
-                .atStartOfDay()
-                .toInstant(API_ZONE_OFFSET)
-                .toEpochMilli()
-            observeVal = observeVal.copy(localTime = startOfApiDay.toString())
-        }
-
-        // forecast → 每日预报
-        val forecastReferenceDate = localTimeSeconds
-            ?.let { Instant.ofEpochSecond(it).atOffset(API_ZONE_OFFSET).toLocalDate() }
-            ?: observeVal.pubdate.toLongOrNull()
-                ?.let { Instant.ofEpochMilli(it).atOffset(API_ZONE_OFFSET).toLocalDate() }
-        val dailyForecast = if (data.has("forecast") && !data.isNull("forecast")) {
-            parseDailyForecast(data.optJSONObject("forecast")!!, forecastReferenceDate)
-        } else emptyList()
-
-        // forecast_hour → 逐小时预报
-        val hourForecast = if (data.has("forecast_hour") && !data.isNull("forecast_hour")) {
-            parseHourForecast(data.optJSONObject("forecast_hour")!!)
-        } else emptyList()
-
-        // allergy → 生活指数
-        val allergy = if (data.has("allergy") && !data.isNull("allergy")) {
-            parseAllergy(data.optJSONObject("allergy")!!)
-        } else Allergy()
-
-        // alert → 天气预警
-        val alert = if (data.has("alert") && !data.isNull("alert")) {
-            parseAlert(data.optJSONObject("alert")!!)
-        } else WeatherAlert()
-
-        // 用 observe 填充顶层字段
-        return weather.copy(
-            observe = observeVal,
-            dailyForecast = dailyForecast,
-            hourForecast = hourForecast,
-            allergy = allergy,
-            alert = alert,
-            airQuality = airQuality,
-            weatherCode = observeVal.code,
-            temp = observeVal.tempC,
-            windDirection = observeVal.wind,
-            windSpeed = observeVal.speed,
-            relativeHumidity = observeVal.humidity,
-            compareC = WeatherCodeMapping.safeParseInt(observeVal.compareC),
-            compareF = WeatherCodeMapping.compareC2F(WeatherCodeMapping.safeParseInt(observeVal.compareC)),
-            realFeelTemp = observeVal.bodyFeelC,
-            pubdate = observeVal.pubdate,
-        )
-    }
-
-    /** 解析 observe 节点 */
-    private fun parseObserve(obs: JSONObject): Observe {
-        val info = obs.optJSONObject("info") ?: return Observe()
-        val tempC = info.optString("temp")
-        val tempF = if (tempC.isNotBlank() && tempC != "UNKNOWN") {
-            WeatherCodeMapping.celsiusToFahrenheit(WeatherCodeMapping.safeParseInt(tempC)).toString()
-        } else "UNKNOWN"
-        val bodyFeelC = info.optString("body_feel")
-        val bodyFeelF = if (bodyFeelC.isNotBlank() && bodyFeelC != "UNKNOWN") {
-            WeatherCodeMapping.celsiusToFahrenheit(WeatherCodeMapping.safeParseInt(bodyFeelC)).toString()
-        } else "UNKNOWN"
-        val compareCStr = info.optString("compare")
-        val compareFStr = if (compareCStr.isNotBlank() && compareCStr != "UNKNOWN") {
-            WeatherCodeMapping.compareC2F(compareCStr.toInt()).toString()
-        } else "UNKNOWN"
-
-        // publish_time "yyyyMMddHHmm" → epoch ms
-        val pubTimeStr = obs.optString("publish_time")
-        val pubdate = parsePublishTime(pubTimeStr)
-
-        return Observe(
-            tempC = tempC.ifBlank { "UNKNOWN" },
-            tempF = tempF,
-            code = info.optString("code"),
-            wind = info.optString("wind"),
-            speed = info.optString("speed"),
-            humidity = info.optString("humidity"),
-            compareC = compareCStr.ifBlank { "UNKNOWN" },
-            compareF = compareFStr,
-            bodyFeelC = bodyFeelC.ifBlank { "UNKNOWN" },
-            bodyFeelF = bodyFeelF,
-            pubdate = pubdate,
-        )
-    }
-
-    /** 解析 publish_time "yyyyMMddHHmm" → 时间字符串 */
-    private fun parsePublishTime(pt: String): String {
-        return try {
-            if (pt.length >= 12) {
-                LocalDateTime.parse(pt.substring(0, 12), PUBLISH_TIME_FORMATTER)
-                    .toInstant(API_ZONE_OFFSET)
-                    .toEpochMilli()
-                    .toString()
-            } else ""
-        } catch (e: Exception) {
-            ""
-        }
-    }
-
-    /** 解析 air 节点 */
-    private fun parseAirQuality(air: JSONObject): AirQuality {
-        val info = air.optJSONObject("info") ?: return AirQuality()
-        return AirQuality(
-            aqiValue = info.optString("aqi"),
-            primary = info.optString("primary"),
-            pm25 = info.optString("pm2_5"),
-            pm10 = info.optString("pm10"),
-            o3 = info.optString("o3"),
-            no2 = info.optString("no2"),
-            so2 = info.optString("so2"),
-            co = info.optString("co"),
-            publishTime = info.optString("publish_time"),
-        )
-    }
-
-    /** 解析 forecast 节点 → 每日预报列表 */
-    private fun parseDailyForecast(
-        forecast: JSONObject,
-        referenceDate: LocalDate?,
-    ): List<DailyForecast> {
-        val arr = forecast.optJSONArray("info") ?: return emptyList()
-        val list = mutableListOf<DailyForecast>()
-        val dayNames = arrayOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")
-        for (i in 0 until arr.length()) {
-            val item = arr.optJSONObject(i) ?: continue
-            val date = item.optString("date")
-            val forecastDate = runCatching { LocalDate.parse(date) }.getOrNull()
-            if (forecastDate != null && referenceDate != null && forecastDate.isBefore(referenceDate)) {
-                continue
-            }
-            val lowC = WeatherCodeMapping.safeParseInt(item.optString("low"))
-            val highC = WeatherCodeMapping.safeParseInt(item.optString("high"))
-            val codeAm = item.optString("code1")
-            val codePm = item.optString("code2").ifBlank { codeAm }
-            val weekDay = forecastDate?.let { dayNames[it.dayOfWeek.value % dayNames.size] }.orEmpty()
-
-            list.add(
-                DailyForecast(
-                    date = date.replace("-", "") + "0000",
-                    weekDay = weekDay,
-                    weatherCodeAm = codeAm,
-                    weatherCodePm = codePm,
-                    highTempC = highC,
-                    highTempF = WeatherCodeMapping.celsiusToFahrenheit(highC),
-                    lowTempC = lowC,
-                    lowTempF = WeatherCodeMapping.celsiusToFahrenheit(lowC),
-                    sunriseAndSunset = item.optString("sun"),
-                )
-            )
-        }
-        return list
-    }
-
-    /** 解析 forecast_hour 节点 → 逐小时预报列表 */
-    private fun parseHourForecast(hourData: JSONObject): List<HourForecast> {
-        val arr = hourData.optJSONArray("info") ?: return emptyList()
-        val list = mutableListOf<HourForecast>()
-        for (i in 0 until arr.length()) {
-            val item = arr.optJSONObject(i) ?: continue
-            val tempC = if (item.has("tempC")) {
-                item.optInt("tempC", -1)
-            } else {
-                item.optInt("temp", -1)
-            }
-            val tempF = if (tempC != -1) WeatherCodeMapping.celsiusToFahrenheit(tempC) else -1
-            val code = item.optString("code")
-            list.add(
-                HourForecast(
-                    code = code,
-                    weatherCode = item.optString("weatherCode").ifBlank { code },
-                    temp = item.optString("temp"),
-                    tempC = tempC,
-                    tempF = tempF,
-                    startTime = item.optString("startTime").ifBlank {
-                        item.optString("f_start_time").ifBlank { item.optString("start_time") }
-                    },
-                    night = item.optBoolean("night"),
-                    sunDes = item.optString("sunDes"),
-                )
-            )
-        }
-        return list
-    }
-
-    /** 解析 allergy 节点 */
-    private fun parseAllergy(allergyNode: JSONObject): Allergy {
-        val arr = allergyNode.optJSONArray("info") ?: return Allergy()
-        var ag = Allergy()
-        for (i in 0 until arr.length()) {
-            val item = arr.optJSONObject(i) ?: continue
-            when (item.optString("type")) {
-                "ag" -> ag = ag.copy(
-                    agContent = item.optString("content"),
-                    agTypeCn = item.optString("type_cn"),
-                    agLevel = item.optString("level"),
-                )
-                "uv" -> ag = ag.copy(
-                    uvContent = item.optString("content"),
-                    uvTypeCn = item.optString("type_cn"),
-                    uvLevel = item.optString("level"),
-                )
-            }
-        }
-        return ag
-    }
-
-    /** 解析 alert 节点 */
-    private fun parseAlert(alertNode: JSONObject): WeatherAlert {
-        val arr: JSONArray = alertNode.optJSONArray("info") ?: return WeatherAlert()
-        if (arr.length() == 0) return WeatherAlert()
-        val list = mutableListOf<AlertInfo>()
-        for (i in 0 until arr.length()) {
-            val item = arr.optJSONObject(i) ?: continue
-            val time = runCatching {
-                LocalDateTime.parse(item.optString("publish_time"), ALERT_TIME_FORMATTER)
-                    .toInstant(API_ZONE_OFFSET)
-                    .toEpochMilli()
-            }.getOrDefault(0L)
-            list.add(
-                AlertInfo(
-                    typeNumber = item.optString("type_number"),
-                    level = item.optString("level"),
-                    content = item.optString("content"),
-                    publishTime = time,
-                    levelNumber = item.optString("level_number"),
-                    type = item.optString("type"),
-                )
-            )
-        }
-        list.sortBy { it.publishTime }
-        return WeatherAlert(infos = list)
-    }
-
-    /** 解析城市搜索结果 */
-    fun parseSearchResults(jsonStr: String): List<SearchResultCity> {
-        return try {
-            parseSearchResultsOrThrow(jsonStr)
-        } catch (e: Exception) {
-            debugWarning("Failed to parse city search response: ${e.javaClass.simpleName}")
-            emptyList()
-        }
-    }
-
-    private fun parseSearchResultsOrThrow(jsonStr: String): List<SearchResultCity> {
-        val root = JSONObject(jsonStr)
-        val code = root.optInt("code", -1)
-        if (code != 0) throw IOException("City search API returned code=$code")
-        if (!root.has("data") || root.isNull("data")) return emptyList()
-        val data = root.getJSONObject("data")
-        val arr = data.optJSONArray("content") ?: return emptyList()
-        return buildList(arr.length()) {
-            for (i in 0 until arr.length()) {
-                val item = arr.optJSONObject(i) ?: continue
-                add(
-                    SearchResultCity(
-                        cityId = item.optString("cityId"),
-                        county = item.optString("county"),
-                        city = item.optString("city"),
-                        province = item.optString("province"),
-                        country = item.optString("country"),
-                        countyEn = item.optString("countyEn"),
-                        countyPinyin = item.optString("countyPinyin"),
-                        id = item.optString("id"),
-                    )
-                )
-            }
-        }
-    }
 }
+
+private val CHINA_CITY_ID = Regex("\\d{9}")
+
+private fun normalizeCityId(cityId: String): String =
+    cityId.trim().removePrefix("weathercn:")
+
+private fun buildUrl(baseUrl: String, parameters: List<Pair<String, String>>): String =
+    parameters.joinToString(prefix = "$baseUrl?", separator = "&") { (name, value) ->
+        "${name.urlEncode()}=${value.urlEncode()}"
+    }
+
+private fun String.urlEncode(): String =
+    URLEncoder.encode(this, StandardCharsets.UTF_8.name()).replace("+", "%20")
+
+private fun Double.toPlainCoordinate(): String =
+    BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()

@@ -212,12 +212,6 @@ class SearchCityActivity : WeatherTransitionActivity(),
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     if (newState == RecyclerView.SCROLL_STATE_DRAGGING) searchBar.hideKeyboard()
                 }
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (dy > 0 && !recyclerView.canScrollVertically(1)) {
-                        viewModel.loadNextPage()
-                    }
-                }
             }
         )
         retryButton.setOnClickListener { viewModel.retry() }
@@ -260,14 +254,6 @@ class SearchCityActivity : WeatherTransitionActivity(),
             renderedResults = state.results
             adapter.submitData(state.results)
         }
-        adapter.setLoadState(
-            when {
-                state.isLoadingMore -> SearchContentAdapter.LOAD_STATE_LOADING
-                state.hasMore -> SearchContentAdapter.LOAD_STATE_COMPLETE
-                else -> SearchContentAdapter.LOAD_STATE_NO_MORE
-            }
-        )
-
         when {
             state.query.isBlank() -> showHotCities()
             state.isLoading && state.results.isEmpty() -> showLoading()

@@ -28,7 +28,6 @@
     <string name="format_weather">%1$s %2$s%3$s 至 %4$s%5$s</string>
     <string name="green_land">北京绿地中心</string>
     <string name="hint_edittext_add_city">都市と地域を入力してください</string>
-    <string name="loading">読み込み中...</string>
     <string name="real_feel_temp">体感温度</string>
     <string name="refresh">更新</string>
     <string name="relative_Humidity">相対湿度</string>
@@ -84,8 +83,8 @@
     <string name="weather_pager_jump_text">さらに読み込む</string>
     <string name="weather_pager_update_text">更新時刻 %1$s</string>
     <string name="weather_pager_week_and_date_text">%1$s %2$s</string>
-    <string name="weather_parnter_description">天气合作商华风新天</string>
-    <string name="weather_parnter_text">华风新天</string>
+    <string name="weather_parnter_description">Xiaomi Weather 経由：北京天気、彩雲天気、中国環境監視総站</string>
+    <string name="weather_parnter_text">北京天気、彩雲天気、CNEMC</string>
     <string name="weather_percent_symbol">%</string>
     <string name="weather_privacy_statement_tip_agree">同意する</string>
     <string name="weather_privacy_statement_tip_disagress">同意しない</string>
