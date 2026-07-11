@@ -1,20 +1,31 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/compiler.xml
-/.idea/deploymentTargetSelector.xml
-/.idea/deviceManager.xml
-/.idea/markdown.xml
-.DS_Store
-/build
-/captures
-/decompiled
-.externalNativeBuild
-.cxx
+# Gradle
+.gradle/
+/build/
+
+# Local configuration
 local.properties
+
+# Android Studio / IntelliJ IDEA
+/.idea/
+*.iml
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Build outputs
+*.apk
+*.aab
+output-metadata.json
+*.hprof
+*.log
+
+# Signing and service configuration
+*.jks
+*.keystore
+google-services.json
+
+# Project-generated artifacts
+/decompiled/
+
+# Operating system
+.DS_Store
