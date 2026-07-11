@@ -56,6 +56,10 @@
 
 Debug APK 位于 `app/build/outputs/apk/debug/`。
 
+## 致谢
+
+感谢 [People-11](https://github.com/People-11/) 的 [SmartisanOS_APP_Port](https://github.com/People-11/SmartisanOS_APP_Port/) 移植工作。本项目使用该项目提供的 `Weather_8.1.3.apk` 进行逆向分析，用于提取原版资源，并确认 UI 层级、视觉细节与交互行为。
+
 ## 免责声明
 
 本项目与字节跳动、小米无关，仅为个人兴趣驱动的非官方重写。
