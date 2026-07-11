@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
-import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.TextUtils
@@ -569,12 +568,7 @@ class WeatherContentViewUtil @JvmOverloads constructor(
     /** 触感反馈，替代原版 `VibratorSmt.vibrateEffect(vibrator, 0)`。 */
     private fun vibrateEffect() {
         val v = vibrator ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(HAPTIC_DURATION_MILLIS, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            v.vibrate(HAPTIC_DURATION_MILLIS)
-        }
+        v.vibrate(VibrationEffect.createOneShot(HAPTIC_DURATION_MILLIS, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     private fun performTemperatureUnitHapticFeedback() {

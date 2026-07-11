@@ -1,6 +1,6 @@
 # Smartisan Weather Revived
 
-锤子天气 8.1.3 的现代 Android 复刻项目。目标是尽可能 1:1 还原原版界面、动画和触摸反馈，同时使用当前稳定的 Android 工具链。
+基于锤子天气 8.1.3 逆向对照，使用现代 Android 技术栈重写。目标是尽可能 1:1 还原原版界面、动画和触摸反馈，同时更换天气数据源并使用当前稳定的 Android 工具链。
 
 ## 开发约束
 
@@ -59,7 +59,7 @@ app/src/main/res/
 ## 当前架构
 
 - **UI**：纯 Kotlin + XML/View，多 Activity，原版自定义 View 直接承载复杂绘制和动画。
-- **工具链**：Gradle 9.6.1、AGP 9.2.1、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、Java 17。
+- **工具链**：Gradle 9.6.1、AGP 9.2.1、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、JDK 25（Gradle Daemon）与 Java 17 字节码。
 - **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、RecyclerView 1.4.0、Coroutines 1.11.0。
 - **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Activity 使用 lifecycle-aware collection；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
 - **数据**：Room 3 + bundled SQLite 保存城市；DataStore Preferences 是温度单位等设置的唯一数据源。

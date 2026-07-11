@@ -375,17 +375,12 @@ class CityListActivity : WeatherTransitionActivity() {
         }
         val vibrator = getSystemService(Vibrator::class.java)
         if (!vibrator.hasVibrator()) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(
-                VibrationEffect.createOneShot(
-                    DRAG_START_VIBRATION_MILLIS,
-                    VibrationEffect.DEFAULT_AMPLITUDE,
-                ),
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(DRAG_START_VIBRATION_MILLIS)
-        }
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(
+                DRAG_START_VIBRATION_MILLIS,
+                VibrationEffect.DEFAULT_AMPLITUDE,
+            ),
+        )
     }
 
     private fun updateSourcePlacement() {
