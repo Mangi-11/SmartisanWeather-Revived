@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:id="@+id/calendars"
-    android:background="@color/weather_alert_bg_color"
+    android:background="@drawable/list_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <com.smartisan.weather.widget.InsetTopBarLayout
@@ -15,20 +15,24 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/titlebar_height"/>
     </com.smartisan.weather.widget.InsetTopBarLayout>
-    <ImageView
-        android:background="@drawable/title_bar_shadow"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/title_bar_shadow_height"/>
-    <ScrollView
-        android:scrollbars="none"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:overScrollMode="always">
-        <com.smartisan.weather.custom.VerticalRecyclerView
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_content"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:overScrollMode="never"/>
-    </ScrollView>
+            android:overScrollMode="always"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:scrollbars="none"/>
+        <ImageView
+            android:background="@drawable/title_bar_shadow"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/title_bar_shadow_height"/>
+    </FrameLayout>
 </LinearLayout>

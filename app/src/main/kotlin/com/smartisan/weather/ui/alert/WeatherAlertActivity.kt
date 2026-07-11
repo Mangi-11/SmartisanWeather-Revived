@@ -7,8 +7,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.smartisan.weather.R
-import com.smartisan.weather.custom.VerticalRecyclerView
 import com.smartisan.weather.data.model.WeatherAlert
 import com.smartisan.weather.util.centeredPhoneContentInsets
 import com.smartisan.weather.util.enableWeatherEdgeToEdge
@@ -29,7 +29,7 @@ class WeatherAlertActivity : ComponentActivity() {
 
         val root = findViewById<android.view.View>(R.id.calendars)
         val titleBar = findViewById<TitleBar>(R.id.title_bar)
-        val recycler = findViewById<VerticalRecyclerView>(R.id.recycler_content)
+        val recycler = findViewById<RecyclerView>(R.id.recycler_content)
 
         titleBar.setShadowVisible(false)
         titleBar.setCenterText(R.string.weather_alert_title)
@@ -49,7 +49,7 @@ class WeatherAlertActivity : ComponentActivity() {
 
     private fun applySystemBarInsets(
         root: android.view.View,
-        recycler: VerticalRecyclerView,
+        recycler: RecyclerView,
     ) {
         val baseRootPaddingLeft = root.paddingLeft
         val baseRootPaddingRight = root.paddingRight

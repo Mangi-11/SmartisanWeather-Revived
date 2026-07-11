@@ -27,9 +27,12 @@
     <color name="secondary_text_default_material_dark">#b3ffffff</color>
     <color name="secondary_text_default_material_light">#8a000000</color>
     <color name="weather_alert_bg_color">#f5f5f5</color>
+    <color name="weather_alert_body_text_color">#de000000</color>
+    <color name="weather_alert_card_outline_color">#14000000</color>
+    <color name="weather_alert_title_text_color">#cc000000</color>
     <color name="weather_alert_seperation_color">#ebebeb</color>
     <color name="weather_alert_type_text_color">#666666</color>
-    <color name="weather_alert_update_time_text_color">#999999</color>
+    <color name="weather_alert_update_time_text_color">#61000000</color>
     <color name="weather_aqi_des_foggy_text_color">#7488b0</color>
     <color name="weather_aqi_des_haze_text_color">#808091</color>
     <color name="weather_aqi_des_rain_text_color">#7488b0</color>

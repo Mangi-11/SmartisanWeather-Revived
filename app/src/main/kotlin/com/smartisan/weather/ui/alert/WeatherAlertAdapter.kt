@@ -21,7 +21,7 @@ internal class WeatherAlertAdapter(
     }
 
     override fun onBindViewHolder(holder: AlertViewHolder, position: Int) {
-        holder.bind(alerts[position], isLast = position == alerts.lastIndex)
+        holder.bind(alerts[position])
     }
 
     override fun getItemCount(): Int = alerts.size
@@ -32,10 +32,8 @@ internal class WeatherAlertAdapter(
         private val content = itemView.findViewById<TextView>(R.id.alert_content)
         private val levelBackground = itemView.findViewById<ImageView>(R.id.alert_img01)
         private val typeIcon = itemView.findViewById<ImageView>(R.id.alert_img02)
-        private val middleShadow = itemView.findViewById<View>(R.id.shadow_middle)
-        private val bottomShadow = itemView.findViewById<View>(R.id.shadow_bottom)
 
-        fun bind(alert: AlertInfo, isLast: Boolean) {
+        fun bind(alert: AlertInfo) {
             val context = itemView.context
             type.text = context.getString(R.string.weather_alert_tip, alert.type, alert.level)
             updateTime.text = Utility.getDisplayTime(context, alert.publishTime)
@@ -46,8 +44,6 @@ internal class WeatherAlertAdapter(
             typeIcon.setImageResource(
                 AlertIconMapping.typeIcon(context, alert.typeNumber, alert.type),
             )
-            middleShadow.visibility = if (isLast) View.GONE else View.VISIBLE
-            bottomShadow.visibility = if (isLast) View.VISIBLE else View.GONE
         }
     }
 }
