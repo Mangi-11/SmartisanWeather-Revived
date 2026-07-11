@@ -9,7 +9,7 @@ import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.ViewParent
+import android.view.ViewGroup
 import android.view.animation.Interpolator
 import android.widget.Scroller
 import com.smartisan.weather.bean.SmartisanLocation
@@ -122,8 +122,58 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
         }
     }
 
-    override fun requestDisallowInterceptTouchEvent(disallow: Boolean) {
-        parent?.requestDisallowInterceptTouchEvent(disallow)
+    /**
+     * Prevent ancestors from stealing a city-page drag without overriding the
+     * descendant touch contract implemented by [android.view.ViewGroup].
+     */
+    private fun disallowAncestorIntercept() {
+        parent?.requestDisallowInterceptTouchEvent(true)
+    }
+
+    /** Lets a scrollable descendant keep a same-axis gesture before paging starts. */
+    private fun canCurrentPageScrollHorizontally(deltaX: Int, x: Int, y: Int): Boolean {
+        val page = currentView
+        val localX = x + scrollX - page.left
+        val localY = y + scrollY - page.top
+        if (localX !in 0 until page.width || localY !in 0 until page.height) return false
+        return canScrollHorizontally(
+            view = page,
+            checkView = false,
+            deltaX = deltaX,
+            x = localX,
+            y = localY,
+        )
+    }
+
+    private fun canScrollHorizontally(
+        view: View,
+        checkView: Boolean,
+        deltaX: Int,
+        x: Int,
+        y: Int,
+    ): Boolean {
+        if (view is ViewGroup) {
+            val scrolledX = x + view.scrollX
+            val scrolledY = y + view.scrollY
+            for (index in view.childCount - 1 downTo 0) {
+                val child = view.getChildAt(index)
+                if (
+                    child.visibility == View.VISIBLE &&
+                    scrolledX >= child.left && scrolledX < child.right &&
+                    scrolledY >= child.top && scrolledY < child.bottom &&
+                    canScrollHorizontally(
+                        view = child,
+                        checkView = true,
+                        deltaX = deltaX,
+                        x = scrolledX - child.left,
+                        y = scrolledY - child.top,
+                    )
+                ) {
+                    return true
+                }
+            }
+        }
+        return checkView && view.canScrollHorizontally(-deltaX)
     }
 
     private fun resetTouchState() {
@@ -329,6 +379,7 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
         }
         val action = motionEvent.action and 0xff
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+            resetTouchState()
             return false
         }
         if (action != 0) {
@@ -341,6 +392,7 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
         }
         when (action) {
             MotionEvent.ACTION_DOWN -> {
+                velocityTracker?.clear()
                 val x = motionEvent.x
                 downX = x
                 lastMotionX = x
@@ -354,7 +406,7 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
                 if (Math.abs(scroller.finalX - scroller.currX) > abortThreshold) {
                     scroller.abortAnimation()
                     isDragging = true
-                    requestDisallowInterceptTouchEvent(true)
+                    disallowAncestorIntercept()
                 } else {
                     isDragging = false
                 }
@@ -371,8 +423,20 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
                         val y = motionEvent.getY(pointerIndex)
                         val absDy = Math.abs(y - downY)
                         if (absDx > touchSlop && absDx * 0.5f > absDy) {
+                            if (
+                                canCurrentPageScrollHorizontally(
+                                    deltaX = dx.toInt(),
+                                    x = motionEvent.getX(pointerIndex).toInt(),
+                                    y = y.toInt(),
+                                )
+                            ) {
+                                ignoreScroll = true
+                                velocityTracker?.recycle()
+                                velocityTracker = null
+                                return false
+                            }
                             isDragging = true
-                            requestDisallowInterceptTouchEvent(true)
+                            disallowAncestorIntercept()
                             lastMotionX = if (dx > 0.0f) downX + touchSlop else downX - touchSlop
                             lastMotionY = y
                         } else if (absDy > touchSlop) {
@@ -436,8 +500,7 @@ class WeatherGroupContainer : WeatherSwticher, AbstractController {
                             isDragging = true
                             lastMotionX = if (x - downX > 0.0f) lastMotionX + slop else lastMotionX - slop
                             lastMotionY = y
-                            val parent: ViewParent? = parent
-                            parent?.requestDisallowInterceptTouchEvent(true)
+                            disallowAncestorIntercept()
                             updateDirection(dx)
                         }
                         if (isDragging) {

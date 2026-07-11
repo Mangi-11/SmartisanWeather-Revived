@@ -114,21 +114,16 @@
                 android:layout_height="@dimen/item_pager_seperation_height"
                 android:layout_marginLeft="@dimen/item_pager_content_seperation_margin_left"
                 android:layout_marginRight="@dimen/item_pager_content_seperation_margin_right"/>
-            <HorizontalScrollView
-                android:id="@+id/content_forecast_hour_parent_view"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/content_forecast_hour_recycler_view"
                 android:scrollbars="none"
                 android:fadingEdgeLength="@dimen/weather_fading_edge_length"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:overScrollMode="always"
-                android:requiresFadingEdge="horizontal">
-                <com.smartisan.weather.custom.WeatherHourForecastView
-                    android:id="@+id/content_forecast_hour_recycler_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:overScrollMode="never"
-                    android:nestedScrollingEnabled="false"/>
-            </HorizontalScrollView>
+                android:clipToPadding="false"
+                android:paddingStart="@dimen/item_pager_content_forcast_hour_margin_left"
+                android:paddingEnd="@dimen/item_pager_content_forcast_hour_margin_left"
+                android:requiresFadingEdge="horizontal"/>
             <View
                 android:layout_gravity="center_horizontal"
                 android:background="@color/item_pager_seperation_color"

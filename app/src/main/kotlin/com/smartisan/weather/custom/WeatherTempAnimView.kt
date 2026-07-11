@@ -9,10 +9,8 @@ import android.widget.FrameLayout
 import com.smartisan.weather.R
 
 /**
- * A [FrameLayout] that animates between a Celsius child (index 0) and a Fahrenheit
- * child (index 1) using slide-in / slide-out translate animations.
- *
- * Ported from the decompiled Java class `com.smartisan.weather.custom.WeatherTempAnimView`.
+ * Animates between Celsius and Fahrenheit children while safely settling
+ * interrupted or recycled views into their latest unit state.
  */
 class WeatherTempAnimView @JvmOverloads constructor(
     context: Context,
@@ -20,46 +18,72 @@ class WeatherTempAnimView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    private var inAnimation: Animation? = null
-    private var outAnimation: Animation? = null
+    private var displayedChildIndex = 0
+    private var animationGeneration = 0
 
-    private fun showChild(targetIndex: Int, animate: Boolean) {
-        val childCount = childCount
+    private fun showChild(
+        targetIndex: Int,
+        animate: Boolean,
+        incomingAnimationRes: Int,
+        outgoingAnimationRes: Int,
+    ) {
+        displayedChildIndex = targetIndex
+        val generation = ++animationGeneration
         for (i in 0 until childCount) {
             val child = getChildAt(i) ?: continue
+            child.clearAnimation()
             if (i == targetIndex) {
-                if (animate) {
-                    inAnimation?.let { anim ->
-                        child.clearAnimation()
-                        child.visibility = VISIBLE
-                        child.startAnimation(anim)
-                    }
-                }
                 child.visibility = VISIBLE
-            } else if (animate && outAnimation != null && child.visibility == VISIBLE) {
-                child.startAnimation(outAnimation)
-                child.postDelayed({
-                    child.clearAnimation()
-                    child.visibility = GONE
-                }, 300L)
-            } else {
-                if (child.animation === inAnimation) {
-                    child.clearAnimation()
+                if (animate) {
+                    child.startAnimation(AnimationUtils.loadAnimation(context, incomingAnimationRes))
                 }
+            } else if (animate && child.visibility == VISIBLE) {
+                val outgoingAnimation = AnimationUtils.loadAnimation(context, outgoingAnimationRes)
+                outgoingAnimation.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) = Unit
+
+                    override fun onAnimationRepeat(animation: Animation?) = Unit
+
+                    override fun onAnimationEnd(animation: Animation?) {
+                        if (generation == animationGeneration) {
+                            child.clearAnimation()
+                            child.visibility = GONE
+                        }
+                    }
+                })
+                child.startAnimation(outgoingAnimation)
+            } else {
                 child.visibility = GONE
             }
         }
     }
 
     fun showCView(animate: Boolean) {
-        inAnimation = AnimationUtils.loadAnimation(context, R.anim.weather_temp_in_f2c)
-        outAnimation = AnimationUtils.loadAnimation(context, R.anim.weather_temp_out_f2c)
-        showChild(0, animate)
+        showChild(
+            targetIndex = 0,
+            animate = animate,
+            incomingAnimationRes = R.anim.weather_temp_in_f2c,
+            outgoingAnimationRes = R.anim.weather_temp_out_f2c,
+        )
     }
 
     fun showFView(animate: Boolean) {
-        inAnimation = AnimationUtils.loadAnimation(context, R.anim.weather_temp_in_c2f)
-        outAnimation = AnimationUtils.loadAnimation(context, R.anim.weather_temp_out_c2f)
-        showChild(1, animate)
+        showChild(
+            targetIndex = 1,
+            animate = animate,
+            incomingAnimationRes = R.anim.weather_temp_in_c2f,
+            outgoingAnimationRes = R.anim.weather_temp_out_c2f,
+        )
+    }
+
+    override fun onDetachedFromWindow() {
+        animationGeneration++
+        for (i in 0 until childCount) {
+            getChildAt(i)?.run {
+                clearAnimation()
+                visibility = if (i == displayedChildIndex) VISIBLE else GONE
+            }
+        }
+        super.onDetachedFromWindow()
     }
 }

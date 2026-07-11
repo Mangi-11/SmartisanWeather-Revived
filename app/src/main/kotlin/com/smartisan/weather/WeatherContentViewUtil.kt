@@ -26,6 +26,7 @@ import android.widget.TextView
 import android.widget.Toast
 import android.widget.ViewFlipper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.smartisan.weather.adapter.WeatherForecastRecyclerAdapter
 import com.smartisan.weather.adapter.WeatherObserverRecyclerAdapter
 import com.smartisan.weather.bean.AlertInfo
@@ -37,7 +38,6 @@ import com.smartisan.weather.custom.IndicateView
 import com.smartisan.weather.custom.SmartisanScrollView
 import com.smartisan.weather.custom.TemperatureDrawableResources
 import com.smartisan.weather.custom.VerticalRecyclerView
-import com.smartisan.weather.custom.WeatherHourForecastView
 import com.smartisan.weather.custom.WeatherMainTemView
 import com.smartisan.weather.custom.WeatherTempAnimView
 import com.smartisan.weather.util.ClickUtil
@@ -118,8 +118,9 @@ class WeatherContentViewUtil @JvmOverloads constructor(
     private var listButton: ImageButton? = null
     private var addButton: ImageButton? = null
     private var circleAnimButton: CircleAnimButton? = null
-    private var hourLayoutManager: LinearLayoutManager? = null
     private var forecastLayoutManager: LinearLayoutManager? = null
+    private lateinit var hourForecastView: RecyclerView
+    private val observerAdapter = WeatherObserverRecyclerAdapter()
     private var vibrator: Vibrator? = null
     private var tempScrollView: SmartisanScrollView? = null
     private var tempAnimView: WeatherMainTemView? = null
@@ -157,13 +158,8 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         private set
     var partnerLabelView: TextView? = null
         private set
-    var hourForecastParentView: View? = null
-        private set
-    var hourForecastView: WeatherHourForecastView? = null
-        private set
     var forecastRecyclerView: VerticalRecyclerView? = null
         private set
-    private var observerAdapter: WeatherObserverRecyclerAdapter? = null
     private var forecastAdapter: WeatherForecastRecyclerAdapter? = null
     private var translateDistanceOut: Int = 0
     private var translateDistanceIn: Int = 0
@@ -787,10 +783,6 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         val systemTempUnit = Utility.getSystemTemperatureUnit(ctx)
         tempScrollView!!.visibility = View.VISIBLE
         tempScrollView!!.alpha = 1.0f
-        if (observerAdapter == null) {
-            observerAdapter = WeatherObserverRecyclerAdapter(ctx)
-            observerAdapter!!.setLayoutManager(hourLayoutManager)
-        }
         if (forecastAdapter == null) {
             forecastAdapter = WeatherForecastRecyclerAdapter(ctx, forecastRecyclerView!!)
         }
@@ -821,7 +813,7 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             tempAnimView!!.setTemp(weather.observe!!.getTempC() ?: "", weather.observe!!.getTempF() ?: "", false)
             lowTempAnimView!!.showCView(false)
             highTempAnimView!!.showCView(false)
-            observerAdapter!!.setFValuesVisiable(false)
+            observerAdapter.setFahrenheitVisible(visible = false, animate = false)
             forecastAdapter!!.setFValuesVisiable(false)
         } else {
             tempAnimView!!.setTemp(weather.observe!!.getTempC() ?: "", weather.observe!!.getTempF() ?: "", true)
@@ -830,7 +822,7 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             centigradeIcon!!.isSelected = false
             lowTempAnimView!!.showFView(false)
             highTempAnimView!!.showFView(false)
-            observerAdapter!!.setFValuesVisiable(true)
+            observerAdapter.setFahrenheitVisible(visible = true, animate = false)
             forecastAdapter!!.setFValuesVisiable(true)
         }
         tempAnimView!!.visibility = View.VISIBLE
@@ -889,14 +881,13 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         } else {
             weekView!!.text = Utility.getLocaleWeekday(ctx, weather.observe!!.getCurrentWeekDay() ?: "")
         }
-        observerAdapter!!.setData(weather.hourForecast!!.getmInfo())
-        hourForecastView!!.adapter = observerAdapter
+        observerAdapter.submitForecasts(weather.hourForecast!!.getmInfo()) {
+            hourForecastView.scrollToPosition(0)
+        }
         forecastAdapter!!.setData(weather, drawItem.locationData!!.mCountry)
         forecastRecyclerView!!.adapter = forecastAdapter
         partnerLabelView!!.text = Utility.getParnterText(ctx)
         setAllViewClickable(true)
-        hourForecastParentView!!.scrollTo(0, 0)
-        hourForecastParentView!!.setWillNotDraw(false)
     }
 
     fun fillViewWithData(drawItem: DrawItem, cityCount: Int, position: Int) {
@@ -981,15 +972,18 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         jumpForecastButton!!.setOnClickListener(this)
         tempScrollView = findViewById(R.id.linearlayout_temp_value)
         hourForecastView = findViewById(R.id.content_forecast_hour_recycler_view)
-        hourLayoutManager = LinearLayoutManager(ctx)
-        hourLayoutManager!!.orientation = LinearLayoutManager.HORIZONTAL
-        hourForecastView!!.layoutManager = hourLayoutManager
+        hourForecastView.layoutManager = LinearLayoutManager(
+            ctx,
+            LinearLayoutManager.HORIZONTAL,
+            false,
+        )
+        hourForecastView.itemAnimator = null
+        hourForecastView.adapter = observerAdapter
         forecastRecyclerView = findViewById(R.id.lv_group)
         forecastLayoutManager = LinearLayoutManager(ctx)
         forecastLayoutManager!!.orientation = LinearLayoutManager.VERTICAL
         forecastRecyclerView!!.layoutManager = forecastLayoutManager
         mIndicateView = findViewById(R.id.indicate)
-        hourForecastParentView = findViewById(R.id.content_forecast_hour_parent_view)
         MAX_ALPHA_TIME = ctx.resources.getDimensionPixelSize(R.dimen.weather_main_scroll_alpha_max)
     }
 
@@ -1018,7 +1012,6 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             emptyGroupTop!!.translationX = f
             emptyGroupTop!!.alpha = alpha
         }
-        hourForecastParentView!!.setWillNotDraw(true)
     }
 
     override fun onClick(view: View) {
@@ -1096,7 +1089,7 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             return
         }
         setAllViewClickable(false)
-        observerAdapter!!.updateHourForecastValue(useFahrenheit)
+        observerAdapter.setFahrenheitVisible(visible = useFahrenheit, animate = true)
         forecastAdapter!!.updateHourForecastValue(useFahrenheit)
         if (useFahrenheit) {
             lowTempAnimView!!.showFView(true)
