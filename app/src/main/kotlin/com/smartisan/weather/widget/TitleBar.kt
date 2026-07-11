@@ -1,6 +1,7 @@
 package com.smartisan.weather.widget
 
 import android.content.Context
+import android.graphics.Paint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -44,7 +45,7 @@ class TitleBar @JvmOverloads constructor(
             setSingleLine(true)
             setTextColor(context.getColor(R.color.title_color))
             setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.title_text_size))
-            paint.isFakeBoldText = true
+            paintFlags = Paint.ANTI_ALIAS_FLAG or Paint.FAKE_BOLD_TEXT_FLAG
         }
         addView(
             titleView,

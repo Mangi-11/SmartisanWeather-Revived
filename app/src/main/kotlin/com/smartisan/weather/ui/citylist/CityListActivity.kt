@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
@@ -96,10 +95,6 @@ class CityListActivity : WeatherTransitionActivity() {
         titleBar = findViewById(R.id.title_bar)
         titleBar.setShadowVisible(false)
         titleBar.setCenterText(R.string.city_list)
-        titleBar.getTitleView().apply {
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18f)
-            paint.isFakeBoldText = false
-        }
 
         addButton = titleBar.addLeftImageView(R.drawable.standard_icon_common_add_selector).apply {
             contentDescription = getString(R.string.add_city)

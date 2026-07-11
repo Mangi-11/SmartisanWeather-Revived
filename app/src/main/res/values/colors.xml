@@ -50,7 +50,7 @@
     <color name="weather_bg_color_start_sunny">#e8eefc</color>
     <color name="weather_hot_city_item_added_text_color">#4d000000</color>
     <color name="weather_hot_city_item_default_text_color">#99000000</color>
-    <color name="weather_title_text_color">#99000000</color>
+    <color name="weather_title_text_color">#9a000000</color>
     <color name="weather_top_layout_empty_text_color">#ffffff</color>
     <color name="white">#ffffff</color>
     <color name="bright_foreground_disabled_smartisanos_light">#4c000000</color>

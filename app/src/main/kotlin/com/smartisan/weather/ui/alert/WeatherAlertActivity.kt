@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.smartisan.weather.R
 import com.smartisan.weather.custom.VerticalRecyclerView
 import com.smartisan.weather.data.model.WeatherAlert
-import com.smartisan.weather.util.Utility
 import com.smartisan.weather.util.centeredPhoneContentInsets
 import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
@@ -33,9 +32,7 @@ class WeatherAlertActivity : ComponentActivity() {
         val recycler = findViewById<VerticalRecyclerView>(R.id.recycler_content)
 
         titleBar.setShadowVisible(false)
-        titleBar.setCenterView(
-            Utility.getDefaultDeviceTitleView(this, getString(R.string.weather_alert_title)),
-        )
+        titleBar.setCenterText(R.string.weather_alert_title)
         titleBar
             .addLeftImageView(R.drawable.standard_icon_back_selector)
             .apply {

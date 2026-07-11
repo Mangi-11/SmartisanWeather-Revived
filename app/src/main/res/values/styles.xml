@@ -39,8 +39,9 @@
     </style>
     <!-- 复刻自原版 item_pager_title_bar_style：城市名标题样式 -->
     <style name="item_pager_title_bar_style" parent="">
-        <item name="android:textSize">@dimen/title_text_size</item>
-        <item name="android:textColor">@color/title_color</item>
+        <item name="android:textSize">@dimen/item_pager_title_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/item_pager_title_tex_color</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
     </style>
