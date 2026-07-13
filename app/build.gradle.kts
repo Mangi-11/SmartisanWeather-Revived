@@ -14,8 +14,8 @@ android {
         applicationId = "app.smartisanweather.revived"
         minSdk = 27
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -57,6 +57,7 @@ room3 {
 
 dependencies {
     implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

@@ -80,6 +80,8 @@
     <dimen name="layout_alert_card_margin_horizontal">12dp</dimen>
     <dimen name="layout_alert_card_margin_vertical">4dp</dimen>
     <dimen name="layout_alert_height">52dp</dimen>
+    <dimen name="layout_alert_header_item_spacing">12dp</dimen>
+    <dimen name="layout_alert_header_padding_vertical">12dp</dimen>
     <dimen name="layout_alert_img_bg_height">18dp</dimen>
     <dimen name="layout_alert_img_bg_width">18dp</dimen>
     <dimen name="layout_alert_img_margin_left">6dp</dimen>
