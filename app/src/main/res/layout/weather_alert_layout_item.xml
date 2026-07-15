@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@drawable/weather_alert_card_background"
     android:clipToOutline="true"
@@ -10,63 +9,63 @@
     android:layout_marginTop="@dimen/layout_alert_card_margin_vertical"
     android:layout_marginRight="@dimen/layout_alert_card_margin_horizontal"
     android:layout_marginBottom="@dimen/layout_alert_card_margin_vertical">
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <TableLayout
         android:paddingStart="@dimen/layout_alert_type_text_left_margin_left"
         android:paddingTop="@dimen/layout_alert_header_padding_vertical"
         android:paddingEnd="@dimen/layout_alert_update_time_text_margin_right"
         android:paddingBottom="@dimen/layout_alert_header_padding_vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="@dimen/layout_alert_height">
-        <TextView
-            android:id="@+id/alert_type"
-            android:layout_width="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/layout_alert_height"
+        android:shrinkColumns="0"
+        android:stretchColumns="2">
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/weather_alert_title_text_color"
-            android:textSize="@dimen/layout_alert_type_text_size"
-            android:textStyle="bold"
-            android:typeface="normal"
-            app:layout_constrainedWidth="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/alert_icon_container"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-        <FrameLayout
-            android:id="@+id/alert_icon_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/layout_alert_img_margin_left"
-            android:layout_marginEnd="@dimen/layout_alert_header_item_spacing"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/alert_update_time"
-            app:layout_constraintStart_toEndOf="@id/alert_type"
-            app:layout_constraintTop_toTopOf="parent">
-            <ImageView
-                android:layout_gravity="center"
-                android:id="@+id/alert_img01"
-                android:layout_width="@dimen/layout_alert_img_bg_width"
-                android:layout_height="@dimen/layout_alert_img_bg_height"/>
-            <ImageView
-                android:layout_gravity="center"
-                android:id="@+id/alert_img02"
-                android:layout_width="@dimen/layout_alert_img_top_width"
-                android:layout_height="@dimen/layout_alert_img_top_height"/>
-        </FrameLayout>
-        <TextView
-            android:id="@+id/alert_update_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="@color/weather_alert_update_time_text_color"
-            android:textSize="@dimen/layout_alert_update_time_text_size"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:baselineAligned="false"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/alert_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/weather_alert_title_text_color"
+                android:textSize="@dimen/layout_alert_type_text_size"
+                android:textStyle="bold"
+                android:typeface="normal"/>
+            <FrameLayout
+                android:id="@+id/alert_icon_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/layout_alert_img_margin_left"
+                android:layout_marginEnd="@dimen/layout_alert_header_item_spacing">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:id="@+id/alert_img01"
+                    android:layout_width="@dimen/layout_alert_img_bg_width"
+                    android:layout_height="@dimen/layout_alert_img_bg_height"/>
+                <ImageView
+                    android:layout_gravity="center"
+                    android:id="@+id/alert_img02"
+                    android:layout_width="@dimen/layout_alert_img_top_width"
+                    android:layout_height="@dimen/layout_alert_img_top_height"/>
+            </FrameLayout>
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="0dp"/>
+            <!-- Preserve ConstraintLayout's vertical rounding at every density. -->
+            <TextView
+                android:id="@+id/alert_update_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0.33dp"
+                android:maxLines="1"
+                android:textColor="@color/weather_alert_update_time_text_color"
+                android:textSize="@dimen/layout_alert_update_time_text_size"/>
+        </TableRow>
+    </TableLayout>
     <View
         android:background="@color/weather_alert_seperation_color"
         android:layout_width="match_parent"

@@ -59,6 +59,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/weather_theme"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
+
+        <!-- The app owns one in-process Room singleton and never enables
+             multi-instance invalidation, so its cross-process service is unreachable. -->
+        <service
+            android:name="androidx.room3.MultiInstanceInvalidationService"
+            tools:node="remove" />
     </application>
 
 </manifest>

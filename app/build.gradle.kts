@@ -24,10 +24,15 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            optimization {
+                keepRules {
+                    // The app has no XML onClick, JNI, JS bridge, reflected enum, or
+                    // custom string-based View property. Required Parcelable entry
+                    // points are retained explicitly in proguard-rules.pro.
+                    includeDefault = false
+                }
+            }
+            proguardFiles("proguard-rules.pro")
         }
     }
     compileOptions {
@@ -57,7 +62,6 @@ room3 {
 
 dependencies {
     implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

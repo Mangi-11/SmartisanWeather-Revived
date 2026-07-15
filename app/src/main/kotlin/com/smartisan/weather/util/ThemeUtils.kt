@@ -73,7 +73,7 @@ object ThemeUtils {
         a["05"] = ThemeBean(
             R.drawable.drawable_weather_bg_foggy, R.drawable.selector_weather_c_foggy,
             R.drawable.selector_weather_f_foggy, R.drawable.frame_foggy, R.drawable.btn_unpressed_snow,
-            R.drawable.selector_weather_add_city_foggy, R.drawable.selector_weather_refresh_foggy,
+            R.drawable.selector_weather_add_city_foggy, R.drawable.selector_weather_refresh_rain,
             R.drawable.button_refresh_icon_foggy, R.drawable.selector_weather_list_foggy,
             R.drawable.bg_weather_info_foggy, R.drawable.bg_forecast_foggy, R.drawable.c_sunny,
             R.drawable.f_sunny, R.drawable.selector_weather_checked_foggy, R.drawable.icon_alert_foggy,

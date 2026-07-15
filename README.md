@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.4.0-7F52FF?logo=kotlin" alt="Kotlin 2.4.0" /></a>
-  <a href="https://developer.android.com/build"><img src="https://img.shields.io/badge/AGP-9.2.1-3DDC84?logo=android" alt="AGP 9.2.1" /></a>
+  <a href="https://developer.android.com/build"><img src="https://img.shields.io/badge/AGP-9.4.0--alpha04-3DDC84?logo=android" alt="AGP 9.4.0-alpha04" /></a>
   <a href="https://developer.android.com/about/versions/oreo/android-8.1"><img src="https://img.shields.io/badge/minSdk-27-3DDC84?logo=android" alt="minSdk 27" /></a>
 </p>
 
@@ -42,7 +42,7 @@ Smartisan OS 早已退出历史舞台，其中的天气应用也留在了旧 And
 
 | 类别 | 技术 |
 | --- | --- |
-| 构建 | Android Gradle Plugin `9.2.1`、Gradle `9.6.1`、JDK 25（Java 17 字节码） |
+| 构建 | Android Gradle Plugin `9.4.0-alpha04`、Gradle `9.6.1`、JDK 25（Java 17 字节码） |
 | 语言 | Kotlin `2.4.0` |
 | UI | XML Layout、Android View、自定义 View、多 Activity |
 | 状态 | ViewModel、StateFlow、Coroutines `1.11.0` |

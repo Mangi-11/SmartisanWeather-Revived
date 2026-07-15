@@ -1,6 +1,6 @@
 # Smartisan Weather Revived
 
-基于锤子天气 8.1.3 逆向对照，使用现代 Android 技术栈重写。目标是尽可能 1:1 还原原版界面、动画和触摸反馈，同时更换天气数据源并使用当前稳定的 Android 工具链。
+基于锤子天气 8.1.3 逆向对照，使用现代 Android 技术栈重写。目标是尽可能 1:1 还原原版界面、动画和触摸反馈，同时更换天气数据源并使用当前 Android 工具链。
 
 ## 开发约束
 
@@ -9,7 +9,7 @@
 - 使用多 Activity：主天气、城市搜索、城市管理和天气预警分别由独立 Activity 承载。
 - 这是无历史包袱的新项目，不需要兼容旧包路径、旧数据库、旧 SharedPreferences 或旧版应用升级流程。不要添加 `com.smartisanos.*`、Java 源码或仅用于迁移旧数据的分支。
 - 原版 APK/XML/资源/反编译代码用于确认尺寸、层级、状态机和动画细节；现代化应集中在生命周期、状态管理、数据层和系统 Insets，不应无依据地改写视觉行为。
-- 新增或升级依赖前先查阅 Android/Kotlin 官方文档，使用最新稳定版，不使用 alpha、beta、RC 或过时兼容库。依赖与插件版本以 `gradle/libs.versions.toml` 为准，Gradle 运行版本以 `gradle/wrapper/gradle-wrapper.properties` 为准。
+- 新增或升级依赖前先查阅 Android/Kotlin 官方文档。普通运行时依赖优先使用最新稳定版；Android 构建、编译、压缩和分析工具链可直接跟进官方仓库的最新预览版，以获得最新优化与诊断能力，但升级后必须通过完整构建、测试、Lint 和 Release 产物验证。不要使用过时兼容库。依赖与插件版本以 `gradle/libs.versions.toml` 为准，Gradle 运行版本以 `gradle/wrapper/gradle-wrapper.properties` 为准。
 
 ## 项目结构
 
@@ -59,7 +59,7 @@ app/src/main/res/
 ## 当前架构
 
 - **UI**：纯 Kotlin + XML/View，多 Activity，原版自定义 View 直接承载复杂绘制和动画。
-- **工具链**：Gradle 9.6.1、AGP 9.2.1、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、JDK 25（Gradle Daemon）与 Java 17 字节码。
+- **工具链**：Gradle 9.6.1、AGP 9.4.0-alpha04、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、JDK 25（Gradle Daemon）与 Java 17 字节码。
 - **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、RecyclerView 1.4.0、Coroutines 1.11.0。
 - **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Activity 使用 lifecycle-aware collection；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
 - **数据**：Room 3 + bundled SQLite 保存城市；DataStore Preferences 是温度单位等设置的唯一数据源。
