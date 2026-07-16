@@ -1,6 +1,9 @@
 package com.smartisan.weather.data.model
 
 import java.io.Serializable
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneOffset
 
 /**
  * 天气预警详情。
@@ -154,6 +157,10 @@ data class Weather(
     val compareF: Int = 0,
     val realFeelTemp: String = "",
     val pubdate: String = "",
+    /** 城市相对 UTC 的秒偏移，用于按城市本地时间显示更新时间和昼夜状态。 */
+    val timezoneOffsetSeconds: Int = DEFAULT_TIMEZONE_OFFSET_SECONDS,
+    /** 数据提供方返回的归因页面；为空时由 UI 使用项目默认说明页。 */
+    val attributionUrl: String = "",
 ) : Serializable {
     val isComplete: Boolean
         get() = observe.isComplete
@@ -164,6 +171,12 @@ data class Weather(
     /** 用于主题判断的天气代码 */
     val themeCode: String
         get() = observe.code.ifEmpty { weatherCode }
+
+    val zoneOffset: ZoneOffset
+        get() = runCatching { ZoneOffset.ofTotalSeconds(timezoneOffsetSeconds) }
+            .getOrDefault(DEFAULT_ZONE_OFFSET)
+
+    fun localTimeAt(instant: Instant): LocalTime = instant.atOffset(zoneOffset).toLocalTime()
 }
 
 /**
@@ -178,7 +191,45 @@ data class SearchResultCity(
     val countyEn: String = "",
     val countyPinyin: String = "",
     val id: String = "",
-) : Serializable
+) : Serializable {
+    val isGlobal: Boolean
+        get() = cityId.startsWith(GLOBAL_LOCATION_KEY_PREFIX)
+
+    /**
+     * 保存后用于主页面标题的上级区域。全球同名城市优先显示州/省或国家，
+     * 中国区仍保持原版的“区县 - 城市”层级。
+     */
+    val displayParentName: String
+        get() {
+            if (!isGlobal) return city.ifBlank { province }
+            return listOf(city, province, country)
+                .firstOrNull { candidate ->
+                    candidate.isNotBlank() && !candidate.equals(county, ignoreCase = true)
+                }
+                .orEmpty()
+        }
+
+    /** 搜索结果中用于区分全球同名城市的紧凑地域说明。 */
+    val searchContext: String
+        get() {
+            val candidates = if (isGlobal) {
+                listOf(city, province, country)
+            } else {
+                listOf(city, province)
+            }
+            val unique = mutableListOf<String>()
+            candidates.forEach { candidate ->
+                if (
+                    candidate.isNotBlank() &&
+                    !candidate.equals(county, ignoreCase = true) &&
+                    unique.none { it.equals(candidate, ignoreCase = true) }
+                ) {
+                    unique += candidate
+                }
+            }
+            return if (isGlobal) unique.joinToString(", ") else unique.firstOrNull().orEmpty()
+        }
+}
 
 /**
  * 热门城市。
@@ -215,3 +266,7 @@ data class SavedCity(
     val displayName: String
         get() = locationName.ifBlank { locationParentName }
 }
+
+private const val GLOBAL_LOCATION_KEY_PREFIX = "accu:"
+private const val DEFAULT_TIMEZONE_OFFSET_SECONDS = 8 * 60 * 60
+private val DEFAULT_ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(8)

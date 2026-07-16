@@ -18,6 +18,7 @@ import com.smartisan.weather.util.Utility
  * 原版城市搜索列表的 View 适配器。
  *
  * 小米城市搜索一次返回完整结果、不提供分页，因此这里只维护真实的城市行。
+ * 全球同名城市使用服务端地域层级生成紧凑副标题。
  */
 class SearchContentAdapter(
     private val context: Context,
@@ -76,15 +77,7 @@ class SearchContentAdapter(
 
         fun bind(bean: WeatherSearchBean, position: Int) {
             val county = bean.county.orEmpty()
-            val city = bean.city.orEmpty()
-            val province = bean.province.orEmpty()
-            val country = bean.country.orEmpty()
-            val secondary = when {
-                county.isBlank() -> ""
-                country == context.getString(R.string.weather_china) && county != province -> province
-                country != context.getString(R.string.weather_china) && county != city -> city
-                else -> ""
-            }
+            val secondary = bean.searchContext.orEmpty()
 
             content.text = Utility.getHighlightText(searchKey, county, highlightColor)
             subcontent.text = Utility.getHighlightText(searchKey, secondary, highlightColor)
@@ -132,4 +125,5 @@ private fun SearchResultCity.toLegacyBean(): WeatherSearchBean = WeatherSearchBe
     bean.country = country
     bean.countyEn = countyEn
     bean.id = id
+    bean.searchContext = searchContext
 }

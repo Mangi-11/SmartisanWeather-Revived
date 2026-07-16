@@ -3,8 +3,8 @@ package com.smartisan.weather.appwidget
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.Weather
 import com.smartisan.weather.data.settings.WeatherSettings
+import java.time.Instant
 import java.time.LocalTime
-import java.time.ZoneId
 
 internal const val AUTO_CITY_SELECTION = "@auto-location"
 
@@ -88,7 +88,7 @@ internal object WeatherWidgetContentFactory {
     fun create(
         weather: Weather,
         tempUnit: Int,
-        now: LocalTime = LocalTime.now(CHINA_TIME_ZONE),
+        now: Instant = Instant.now(),
     ): WeatherWidgetContent {
         val isCelsius = tempUnit == WeatherSettings.UNIT_CELSIUS
         val daily = weather.dailyForecast.firstOrNull()
@@ -117,7 +117,7 @@ internal object WeatherWidgetContentFactory {
             lowTemperature = (if (isCelsius) observe.lowTempC else observe.lowTempF)
                 .temperatureOrNull()
                 ?: daily?.let { if (isCelsius) it.lowTempC else it.lowTempF }?.toString(),
-            isNight = isNight(weather, now),
+            isNight = isNight(weather, weather.localTimeAt(now)),
             aqiValue = weather.airQuality.aqiInt.takeIf { it >= 0 }
                 ?: observe.aqi.trim().toIntOrNull()?.takeIf { it >= 0 },
             forecast = forecast,
@@ -157,6 +157,5 @@ internal object WeatherWidgetContentFactory {
     private const val MINUTES_PER_HOUR = 60
     private const val UNKNOWN_TEMPERATURE = "UNKNOWN"
     private const val UNKNOWN_HOURLY_TEMPERATURE = -1
-    private val CHINA_TIME_ZONE = ZoneId.of("Asia/Shanghai")
     private val TIME_REGEX = Regex("(?:^|\\D)([01]?\\d|2[0-3]):([0-5]\\d)(?:$|\\D)")
 }

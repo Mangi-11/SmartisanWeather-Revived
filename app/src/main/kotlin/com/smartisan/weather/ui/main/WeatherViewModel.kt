@@ -221,13 +221,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 locationResolver.resolve(location).fold(
                     onSuccess = { city ->
                         when (
-                            cityRepo.setLocationCity(
-                                cityId = city.cityId,
-                                name = city.county.ifBlank { city.city },
-                                parentName = city.city,
-                                province = city.province,
-                                country = city.country,
-                            )
+                            cityRepo.setLocationCity(city)
                         ) {
                             CityRepository.AddResult.LIMIT_EXCEEDED -> {
                                 eventChannel.send(

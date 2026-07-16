@@ -369,15 +369,20 @@ class MainActivity : ComponentActivity(), AbstractController {
         container.resetRefreshPageState(false)
         val item = container.getData().getOrNull(container.getCurrentItem())
         val location = item?.locationData
-        val url = if (location?.mLocationKey.isNullOrBlank()) {
-            Constants.PARNTER_URL
-        } else {
-            buildString {
-                append(Constants.PARNTER_URL)
-                append("?cityId=")
-                append(Uri.encode(location.mLocationKey))
-                append("&area=")
-                append(Uri.encode(location.mLocationName.orEmpty()))
+        val providerUrl = currentWeather()?.attributionUrl?.takeIf { value ->
+            Uri.parse(value).scheme.equals("https", ignoreCase = true)
+        }
+        val url = providerUrl ?: run {
+            if (location?.mLocationKey.isNullOrBlank()) {
+                Constants.PARNTER_URL
+            } else {
+                buildString {
+                    append(Constants.PARNTER_URL)
+                    append("?cityId=")
+                    append(Uri.encode(location.mLocationKey))
+                    append("&area=")
+                    append(Uri.encode(location.mLocationName.orEmpty()))
+                }
             }
         }
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))

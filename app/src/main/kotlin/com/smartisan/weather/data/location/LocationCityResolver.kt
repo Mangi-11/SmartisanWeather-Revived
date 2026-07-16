@@ -6,7 +6,7 @@ import com.smartisan.weather.data.city.CityRepository
 import com.smartisan.weather.data.model.SearchResultCity
 import kotlinx.coroutines.CancellationException
 
-/** Resolves a device coordinate directly to Xiaomi Weather's canonical China city key. */
+/** Resolves a device coordinate to Xiaomi Weather's canonical China or global city key. */
 class LocationCityResolver(context: Context) {
 
     private val cityRepository = CityRepository(context.applicationContext)
@@ -35,7 +35,7 @@ class LocationCityResolver(context: Context) {
         }
         return city ?: throw LocationCityResolutionException(
             reason = LocationCityFailureReason.CITY_NOT_FOUND,
-            message = "No Xiaomi weather China city matches this coordinate",
+            message = "No Xiaomi weather city matches this coordinate",
         )
     }
 

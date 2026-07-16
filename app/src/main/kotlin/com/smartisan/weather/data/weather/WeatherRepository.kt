@@ -84,6 +84,8 @@ class WeatherRepository(context: Context) {
             o.put("compareF", weather.compareF)
             o.put("realFeelTemp", weather.realFeelTemp)
             o.put("pubdate", weather.pubdate)
+            o.put("timezoneOffsetSeconds", weather.timezoneOffsetSeconds)
+            o.put("attributionUrl", weather.attributionUrl)
 
             val obs = org.json.JSONObject()
             obs.put("tempC", weather.observe.tempC)
@@ -325,12 +327,18 @@ class WeatherRepository(context: Context) {
                 compareF = o.optInt("compareF"),
                 realFeelTemp = o.optString("realFeelTemp"),
                 pubdate = o.optString("pubdate"),
+                timezoneOffsetSeconds = o.optInt(
+                    "timezoneOffsetSeconds",
+                    DEFAULT_TIMEZONE_OFFSET_SECONDS,
+                ),
+                attributionUrl = o.optString("attributionUrl"),
             )
         } catch (e: Exception) {
             null
         }
 
         private const val CACHE_PROVIDER = "xiaomi-v1"
+        private const val DEFAULT_TIMEZONE_OFFSET_SECONDS = 8 * 60 * 60
     }
 }
 

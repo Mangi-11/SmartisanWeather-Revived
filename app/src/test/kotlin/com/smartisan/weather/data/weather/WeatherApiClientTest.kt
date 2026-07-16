@@ -36,6 +36,21 @@ class WeatherApiClientTest {
     }
 
     @Test
+    fun `global request uses accu key and global protocol flag`() {
+        assertEquals(
+            "https://weatherapi.market.xiaomi.com/wtr-v3/weather/all" +
+                "?latitude=0&longitude=0&locationKey=accu%3A328328&days=15" +
+                "&appKey=weather20151024&sign=zUFJoAR2ZVrDy1vF3D07" +
+                "&isGlobal=true&locale=zh_cn",
+            client.buildWeatherUrl("accu:328328"),
+        )
+        assertEquals(
+            client.buildWeatherUrl("101010100"),
+            client.buildWeatherUrl("weathercn:101010100"),
+        )
+    }
+
+    @Test
     fun `parseWeather maps complete Xiaomi mixed-source response`() {
         val weather = client.parseWeather(loadFixture())
 
@@ -43,6 +58,7 @@ class WeatherApiClientTest {
         weather!!
         assertTrue(weather.isComplete)
         assertEquals("小米天气、彩云天气、北京气象局、中国环境监测总站", weather.source)
+        assertEquals(8 * 60 * 60, weather.timezoneOffsetSeconds)
         assertEquals("25", weather.observe.tempC)
         assertEquals("77", weather.observe.tempF)
         assertEquals("28", weather.observe.bodyFeelC)
@@ -86,6 +102,27 @@ class WeatherApiClientTest {
         assertEquals("暴雨", weather.alert.infos.single().type)
         assertEquals("03", weather.alert.infos.single().levelNumber)
         assertEquals(1_487_575_500_000L, weather.alert.infos.single().publishTime)
+    }
+
+    @Test
+    fun `parseWeather maps global AccuWeather response without inventing AQI`() {
+        val weather = client.parseWeather(loadGlobalFixture())
+
+        assertNotNull(weather)
+        weather!!
+        assertTrue(weather.isComplete)
+        assertEquals("小米天气、Accu Weather", weather.source)
+        assertEquals(60 * 60, weather.timezoneOffsetSeconds)
+        assertEquals(
+            "https://www.accuweather.com/zh/gb/london/weather-forecast/328328",
+            weather.attributionUrl,
+        )
+        assertEquals("", weather.airQuality.aqiValue)
+        assertEquals("", weather.observe.aqi)
+        assertEquals("5", weather.allergy.uvLevel)
+        assertEquals(2, weather.dailyForecast.size)
+        assertEquals(2, weather.hourForecast.size)
+        assertTrue(weather.hourForecast.all { it.night })
     }
 
     @Test
@@ -197,7 +234,7 @@ class WeatherApiClientTest {
     }
 
     @Test
-    fun `parseSearchResults maps affiliation and keeps only weathercn cities`() {
+    fun `parseSearchResults maps China and global location keys`() {
         val json = """
             [
               {"name":"北京市","affiliation":"中国","locationKey":"weathercn:101010100","status":0},
@@ -206,13 +243,16 @@ class WeatherApiClientTest {
               {"name":"番禺区","affiliation":"广州市, 广东, 中国","locationKey":"weathercn:101280102","status":0},
               {"name":"苏州市","affiliation":"江苏, 中国","key":"weathercn:101190401","status":0},
               {"name":"香港特别行政区","affiliation":"中国","locationKey":"accu:1123655","status":0},
+              {"name":"London","affiliation":"Ontario, Canada","locationKey":"accu:55489","status":0},
+              {"name":"未知来源","affiliation":"未知","locationKey":"other:123","status":0},
+              {"name":"损坏标识","affiliation":"未知","locationKey":"accu:bad/value","status":0},
               {"name":"失效城市","affiliation":"中国","locationKey":"weathercn:101000000","status":1}
             ]
         """.trimIndent()
 
         val results = client.parseSearchResults(json)
 
-        assertEquals(5, results.size)
+        assertEquals(7, results.size)
         assertEquals(
             listOf("北京", "北京", "北京", "中国"),
             results[0].let { listOf(it.county, it.city, it.province, it.country) },
@@ -231,6 +271,13 @@ class WeatherApiClientTest {
         )
         assertEquals("101190401", results[4].cityId)
         assertEquals("101190401", results[4].id)
+        assertEquals("accu:1123655", results[5].cityId)
+        assertTrue(results[5].isGlobal)
+        assertEquals("中国", results[5].searchContext)
+        assertEquals("中国", results[5].displayParentName)
+        assertEquals("accu:55489", results[6].cityId)
+        assertEquals("Ontario, Canada", results[6].searchContext)
+        assertEquals("Ontario", results[6].displayParentName)
     }
 
     @Test
@@ -238,6 +285,8 @@ class WeatherApiClientTest {
         val weather = Weather(
             source = "小米天气",
             observe = Observe(tempC = "25", tempF = "77", code = "00", humidity = "60"),
+            timezoneOffsetSeconds = 3_600,
+            attributionUrl = "https://example.com/weather",
         )
 
         val json = WeatherRepository.weatherToJson(weather)
@@ -246,6 +295,8 @@ class WeatherApiClientTest {
         assertNotNull(parsed)
         assertEquals("小米天气", parsed!!.source)
         assertEquals("25", parsed.observe.tempC)
+        assertEquals(3_600, parsed.timezoneOffsetSeconds)
+        assertEquals("https://example.com/weather", parsed.attributionUrl)
         assertNull(
             WeatherRepository.jsonToWeather(
                 """{"observe":{"tempC":"99","tempF":"210"}}""",
@@ -270,5 +321,11 @@ class WeatherApiClientTest {
     private fun loadFixture(): String {
         return requireNotNull(javaClass.classLoader?.getResource("xiaomi_weather_response.json"))
             .readText()
+    }
+
+    private fun loadGlobalFixture(): String {
+        return requireNotNull(
+            javaClass.classLoader?.getResource("xiaomi_global_weather_response.json"),
+        ).readText()
     }
 }

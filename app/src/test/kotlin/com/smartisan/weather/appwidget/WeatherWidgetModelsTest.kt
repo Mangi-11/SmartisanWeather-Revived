@@ -7,7 +7,7 @@ import com.smartisan.weather.data.model.Observe
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.Weather
 import com.smartisan.weather.data.settings.WeatherSettings
-import java.time.LocalTime
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -122,15 +122,38 @@ class WeatherWidgetModelsTest {
                 curSunRise = "06:00",
                 curSunSet = "18:00",
             ),
+            timezoneOffsetSeconds = 0,
         )
 
         val content = WeatherWidgetContentFactory.create(
             weather = weather,
             tempUnit = WeatherSettings.UNIT_CELSIUS,
-            now = LocalTime.of(23, 0),
+            now = Instant.parse("2026-07-16T23:00:00Z"),
         )
 
         assertEquals(true, content.isNight)
+    }
+
+    @Test
+    fun currentNightStateUsesTheWeatherCityTimezone() {
+        val weather = Weather(
+            observe = Observe(
+                tempC = "25",
+                tempF = "77",
+                code = "00",
+                curSunRise = "06:00",
+                curSunSet = "18:00",
+            ),
+            timezoneOffsetSeconds = 60 * 60,
+        )
+
+        val content = WeatherWidgetContentFactory.create(
+            weather = weather,
+            tempUnit = WeatherSettings.UNIT_CELSIUS,
+            now = Instant.parse("2026-07-16T16:30:00Z"),
+        )
+
+        assertEquals(false, content.isNight)
     }
 
     @Test

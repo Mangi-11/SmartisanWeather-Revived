@@ -62,10 +62,10 @@ app/src/main/res/
 - **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、RecyclerView 1.4.0、Coroutines 1.11.0。
 - **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Activity 使用 lifecycle-aware collection；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
 - **数据**：Room 3 + bundled SQLite 保存城市；DataStore Preferences 是温度单位等设置的唯一数据源。
-- **网络**：`HttpURLConnection` + `org.json`，接入小米天气中国区混合数据接口，不使用 Retrofit/Moshi。
+- **网络**：`HttpURLConnection` + `org.json`，统一接入小米天气 `wtr-v3`；中国城市使用混合数据，全球城市使用其 AccuWeather 链路，不使用 Retrofit/Moshi。
 - **依赖注入**：Application/Repository 手动单例，不引入 DI 框架。
 - **系统 UI**：target/compile API 37，页面按 View edge-to-edge 规则分别消费状态栏、导航栏和 IME Insets。
-- **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` 获取坐标，再由小米天气 `location/city/geo` 返回 canonical `weathercn` 城市；不引入第三方定位 SDK。
+- **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` 获取坐标，再由小米天气 `location/city/geo` 返回 canonical `weathercn` 或 `accu` 城市；不引入第三方定位 SDK。
 - **资源**：原版可用的 XML、PNG、selector、动画和 56 个源 NinePatch 已从 APK 资源表恢复并由 aapt2 正常编译；不要再用 Compose 渐变替换这些资源。
 
 当前 namespace 为 `com.smartisan.weather`，applicationId 为 `app.smartisanweather.revived`。原版包名 `com.smartisanos.weather` 仅用于逆向对照，不得作为新源码包。
@@ -89,20 +89,22 @@ app/src/main/res/
 
 ## 天气 API
 
-截至 2026-07-11，应用只使用小米天气中国区混合数据源；没有 Open-Meteo 或其他备用源。网络失败仍是正常运行时状态，天气仓库会回退到同一 provider 的本地缓存。
+截至 2026-07-16，应用只使用小米天气 `wtr-v3` 协议链路；中国 `weathercn:` 城市使用小米混合数据，全球 `accu:` 城市由同一接口转接 AccuWeather。没有 Open-Meteo 或其他备用 API。网络失败仍是正常运行时状态，天气仓库会回退到同一城市、同一 provider 的本地缓存。
 
 - 小米天气协议说明：`https://zhuti.designer.xiaomi.com/docs/blog/weatherApi.html#小米天气新接口`
 - 天气：`https://weatherapi.market.xiaomi.com/wtr-v3/weather/all`
 - 城市搜索：`https://weatherapi.market.xiaomi.com/wtr-v3/location/city/search`
 - 坐标反查：`https://weatherapi.market.xiaomi.com/wtr-v3/location/city/geo`
-- `locationKey` 固定为 `weathercn:{cityId}`，只接受 9 位中国天气城市码；搜索和坐标反查必须过滤 `status == 0` 且 key 以 `weathercn:` 开头的结果，不能把 `accu:` 海外结果混入中国源。
-- 天气请求固定 `days=15`、`appKey=weather20151024`、`sign=zUFJoAR2ZVrDy1vF3D07`、`isGlobal=false`、`locale=zh_cn`。这些是公开客户端协议中的固定标识，不是用户凭证，不得输出完整请求 URL 到日志。
-- `weather/all` 当前会按 `locationKey` 自行规范化彩云网格数据所需坐标；传 `latitude=0&longitude=0` 与城市标准坐标返回一致。此结论不适用于未接入的 minutely API；在增加分钟降水功能前不要为坐标修改 Room schema。
+- 中国城市请求 key 为 `weathercn:{9位城市码}`，本地仍可保存九位码；全球城市必须保留服务端返回的完整 `accu:{providerId}`。搜索和坐标反查只接受 `status == 0` 且能通过这两类协议校验的结果，其他前缀必须丢弃。
+- 天气请求固定 `days=15`、`appKey=weather20151024`、`sign=zUFJoAR2ZVrDy1vF3D07`、`locale=zh_cn`；`isGlobal` 必须由 key 类型推导，中国为 `false`、全球为 `true`。这些是公开客户端协议中的固定标识，不是用户凭证，不得输出完整请求 URL 到日志。
+- `weather/all` 当前会按 `locationKey` 自行规范化实际城市；中国和全球请求传 `latitude=0&longitude=0` 均与城市标准坐标返回一致。此结论不适用于未接入的 minutely API；在增加分钟降水功能前不要为坐标修改 Room schema。
 - 城市搜索没有分页，一次最多返回 20 条；UI 不得按结果数量重复请求“下一页”。
-- 小米当前天气码采用中国气象局常见语义，`0..9` 通常只需补成 `00..09`，但必须按文字语义映射到原 View：小米 `20=沙尘暴` 应转换为原 View 的 `31`；不能套用主题 ContentProvider 页面中的另一套紧凑码表。未能语义等价的扩展码必须映射为 `99`。
+- 小米返回给中国和全球城市的天气码使用统一语义，`0..9` 通常只需补成 `00..09`，但必须按文字语义映射到原 View：小米 `20=沙尘暴` 应转换为原 View 的 `31`；不能套用主题 ContentProvider 页面中的另一套紧凑码表。未能语义等价的扩展码必须映射为 `99`。
 - 每日核心行数取 `forecastDaily.weather.value` 与 `temperature.value` 的可用交集；逐小时同理。AQI、风、日出日落等可选数组长度不保证一致，缺失时不能补造 `0℃`。
-- ISO 8601 时间必须按响应 offset 解析。日出日落在进入原 View 前规范化成 `HH:mm|HH:mm`，避免把 `+08:00` 时区误识别成日落。
+- ISO 8601 时间必须按响应 offset 解析，并把城市 offset 写入天气缓存，供主页面更新时间、城市列表和桌面小组件判断当地昼夜。日出日落在进入原 View 前规范化成 `HH:mm|HH:mm`，避免把 offset 误识别成日落。
 - 小米没有原 Smartisan 的过敏指数和“较昨日同期温差”；只映射真实的 `uvIndex`，过敏与温差保持缺失，不能用昨日最高/最低温推算。
+- 全球城市当前通常只返回约 5 天逐日预报，AQI 为不可用，预警也可能为空；UI 必须按字段是否真实存在展示，不得根据国家字段补造污染物、紫外线或预警内容。
+- 来源归因必须跟随响应：全球城市显示并链接 AccuWeather 归因页，中国城市保持小米混合数据来源说明。
 - 缓存 JSON 使用 `provider=xiaomi-v1` 标记；无标记的旧 Smartisan 缓存必须拒绝读取，避免旧数据配上新的来源归因。
 
 ## 原版基准

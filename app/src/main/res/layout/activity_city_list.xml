@@ -27,38 +27,6 @@
         app:max_drag_scroll_speed="0.5"
         app:slide_shuffle_speed="1" />
 
-    <LinearLayout
-        android:id="@+id/source_group"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/citylist_source_logo_margin_top"
-        android:layout_marginBottom="@dimen/citylist_source_logo_margin_bottom"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center_horizontal"
-            android:text="@string/weather_pager_bottom_related_text"
-            android:textColor="@color/item_pager_content_lable_text_color"
-            android:textSize="@dimen/item_pager_content_lable_text_size" />
-
-        <TextView
-            android:id="@+id/source_logo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="@dimen/item_pager_content_lable_drawable_margin_left"
-            android:contentDescription="@string/weather_parnter_description"
-            android:textColor="@color/item_pager_content_parnter_text_color"
-            android:textSize="@dimen/item_pager_content_parnter_text_size"
-            android:textStyle="bold" />
-    </LinearLayout>
-
     <com.smartisan.weather.widget.InsetTopBarLayout
         android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"

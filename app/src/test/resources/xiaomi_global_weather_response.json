@@ -1,0 +1,133 @@
+{
+  "current": {
+    "feelsLike": {
+      "unit": "℃",
+      "value": "25"
+    },
+    "humidity": {
+      "unit": "%",
+      "value": "61"
+    },
+    "pubTime": "2026-07-16T10:52:00+01:00",
+    "temperature": {
+      "unit": "℃",
+      "value": "23"
+    },
+    "uvIndex": "5",
+    "weather": "0",
+    "wind": {
+      "direction": {
+        "unit": "°",
+        "value": "45"
+      },
+      "speed": {
+        "unit": "km/h",
+        "value": "16.0"
+      }
+    }
+  },
+  "forecastDaily": {
+    "pubTime": "2026-07-16T07:00:00+01:00",
+    "status": 0,
+    "sunRiseSet": {
+      "status": 0,
+      "value": [
+        {
+          "from": "2026-07-16T05:01:00+01:00",
+          "to": "2026-07-16T21:11:00+01:00"
+        },
+        {
+          "from": "2026-07-17T05:03:00+01:00",
+          "to": "2026-07-17T21:10:00+01:00"
+        }
+      ]
+    },
+    "temperature": {
+      "status": 0,
+      "unit": "℃",
+      "value": [
+        {
+          "from": "29",
+          "to": "15"
+        },
+        {
+          "from": "27",
+          "to": "14"
+        }
+      ]
+    },
+    "weather": {
+      "status": 0,
+      "value": [
+        {
+          "from": "0",
+          "to": "0"
+        },
+        {
+          "from": "0",
+          "to": "1"
+        }
+      ]
+    }
+  },
+  "forecastHourly": {
+    "status": 0,
+    "temperature": {
+      "pubTime": "2026-07-16T22:00:00+01:00",
+      "status": 0,
+      "unit": "C",
+      "value": [
+        22,
+        21
+      ]
+    },
+    "weather": {
+      "pubTime": "2026-07-16T22:00:00+01:00",
+      "status": 0,
+      "value": [
+        0,
+        1
+      ]
+    },
+    "wind": {
+      "status": 0,
+      "value": [
+        {
+          "datetime": "2026-07-16T22:00:00+01:00",
+          "direction": "95",
+          "speed": "11.1"
+        },
+        {
+          "datetime": "2026-07-16T23:00:00+01:00",
+          "direction": "86",
+          "speed": "9.3"
+        }
+      ]
+    }
+  },
+  "indices": {
+    "indices": [
+      {
+        "type": "uvIndex",
+        "value": "5"
+      }
+    ],
+    "status": 0
+  },
+  "alerts": [],
+  "brandInfo": {
+    "brands": [
+      {
+        "brandId": "accu",
+        "names": {
+          "zh_CN": "Accu Weather"
+        },
+        "url": "http://www.accuweather.com/zh/gb/london/weather-forecast/328328"
+      }
+    ]
+  },
+  "updateTime": 1784197125285,
+  "aqi": {
+    "status": -2
+  }
+}

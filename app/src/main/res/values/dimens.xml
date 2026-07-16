@@ -2,8 +2,6 @@
 <resources>
     <dimen name="add_city_divide_height">0.5dp</dimen>
     <dimen name="citylist_cityname_maxlength">212dp</dimen>
-    <dimen name="citylist_source_logo_margin_bottom">18dp</dimen>
-    <dimen name="citylist_source_logo_margin_top">18dp</dimen>
     <dimen name="compat_button_inset_horizontal_material">4dp</dimen>
     <dimen name="compat_button_inset_vertical_material">6dp</dimen>
     <dimen name="compat_button_padding_horizontal_material">8dp</dimen>
@@ -35,10 +33,6 @@
     <dimen name="item_pager_content_index_left_margin_right">14dp</dimen>
     <dimen name="item_pager_content_index_left_padding_right">24dp</dimen>
     <dimen name="item_pager_content_index_min_height">36dp</dimen>
-    <dimen name="item_pager_content_lable_drawable_margin_left">6dp</dimen>
-    <dimen name="item_pager_content_lable_margin">21dp</dimen>
-    <dimen name="item_pager_content_lable_text_size">10dp</dimen>
-    <dimen name="item_pager_content_parnter_text_size">12sp</dimen>
     <dimen name="item_pager_content_seperation_margin_left">24dp</dimen>
     <dimen name="item_pager_content_seperation_margin_right">24dp</dimen>
     <dimen name="item_pager_content_seperation_margin_top">12dp</dimen>

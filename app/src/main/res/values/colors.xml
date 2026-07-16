@@ -49,8 +49,6 @@
     <color name="divider_listview">#e5e5e6</color>
     <color name="highlight_text_color">#e65c53</color>
     <color name="item_pager_content_forcast_hour_item_view_text_color">#4c000000</color>
-    <color name="item_pager_content_lable_text_color">#4c000000</color>
-    <color name="item_pager_content_parnter_text_color">#4c000000</color>
     <color name="item_pager_content_text_color">#9a000000</color>
     <color name="item_pager_content_text_content_color">#4c000000</color>
     <color name="item_pager_content_title_text_left_color">#9a000000</color>

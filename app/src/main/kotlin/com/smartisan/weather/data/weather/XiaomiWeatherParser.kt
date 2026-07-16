@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Pure parser and protocol mapping for Xiaomi's China weather responses. */
+/** Pure parser and protocol mapping for Xiaomi's China and global weather responses. */
 internal object XiaomiWeatherParser {
 
     private val apiOffset: ZoneOffset = ZoneOffset.ofHours(8)
@@ -56,6 +56,11 @@ internal object XiaomiWeatherParser {
             val alerts = parseAlerts(root.optJSONArray("alerts"))
             val uvIndex = current.text("uvIndex").ifBlank { parseIndex(root, "uvIndex") }
             val source = parseSource(root, airQuality)
+            val timezoneOffsetSeconds = currentPublishTime?.offset?.totalSeconds
+                ?: parseApiDateTime(root.optJSONObject("forecastDaily")?.text("pubTime").orEmpty())
+                    ?.offset
+                    ?.totalSeconds
+                ?: DEFAULT_TIMEZONE_OFFSET_SECONDS
 
             Weather(
                 observe = observe,
@@ -72,6 +77,8 @@ internal object XiaomiWeatherParser {
                 relativeHumidity = observe.humidity,
                 realFeelTemp = observe.bodyFeelC,
                 pubdate = observe.pubdate,
+                timezoneOffsetSeconds = timezoneOffsetSeconds,
+                attributionUrl = parseAttributionUrl(root),
             )
         }.getOrNull()
     }
@@ -84,22 +91,25 @@ internal object XiaomiWeatherParser {
                 val item = results.optJSONObject(index) ?: continue
                 if (item.optInt("status", -1) != 0) continue
 
-                val locationKey = item.text("locationKey").ifBlank { item.text("key") }
-                if (!locationKey.startsWith(WEATHERCN_PREFIX)) continue
-                val cityId = locationKey.removePrefix(WEATHERCN_PREFIX)
-                if (!cityId.matches(CHINA_CITY_ID)) continue
+                val locationKey = XiaomiLocationKey.parse(
+                    item.text("locationKey").ifBlank { item.text("key") },
+                ) ?: continue
 
                 val name = conciseAdministrativeName(item.text("name"))
                 if (name.isBlank()) continue
-                val hierarchy = parseAffiliation(name, item.text("affiliation"))
+                val hierarchy = parseAffiliation(
+                    name = name,
+                    affiliation = item.text("affiliation"),
+                    isGlobal = locationKey.isGlobal,
+                )
                 add(
                     SearchResultCity(
-                        cityId = cityId,
+                        cityId = locationKey.storageKey,
                         county = name,
                         city = hierarchy.city,
                         province = hierarchy.province,
                         country = hierarchy.country,
-                        id = cityId,
+                        id = locationKey.storageKey,
                     ),
                 )
             }
@@ -381,6 +391,24 @@ internal object XiaomiWeatherParser {
         return sources.joinToString("、")
     }
 
+    private fun parseAttributionUrl(root: JSONObject): String {
+        root.optJSONObject("brandInfo")
+            ?.optJSONArray("brands")
+            ?.let { brands ->
+                for (index in 0 until brands.length()) {
+                    brands.optJSONObject(index)
+                        ?.text("url")
+                        ?.toWebUrlOrNull()
+                        ?.let { return it }
+                }
+            }
+        val urls = root.optJSONObject("url") ?: return ""
+        for (key in urls.keys()) {
+            urls.text(key).toWebUrlOrNull()?.let { return it }
+        }
+        return ""
+    }
+
     private fun parseIndex(root: JSONObject, type: String): String {
         val indices = root.optJSONObject("indices")?.optJSONArray("indices") ?: return ""
         for (index in 0 until indices.length()) {
@@ -398,13 +426,27 @@ internal object XiaomiWeatherParser {
         return SunTimes(sunrise, sunset)
     }
 
-    private fun parseAffiliation(name: String, affiliation: String): LocationHierarchy {
+    private fun parseAffiliation(
+        name: String,
+        affiliation: String,
+        isGlobal: Boolean,
+    ): LocationHierarchy {
         val parents = affiliation.split(',')
             .map(String::trim)
             .filter(String::isNotBlank)
             .map(::conciseAdministrativeName)
-        val country = parents.lastOrNull().orEmpty().ifBlank { "中国" }
-        val administrativeParents = parents.dropLast(1)
+        val country = parents.lastOrNull().orEmpty().ifBlank {
+            if (isGlobal) "" else "中国"
+        }
+        val administrativeParents = if (country.isBlank()) parents else parents.dropLast(1)
+        if (isGlobal) {
+            val immediateParent = administrativeParents.firstOrNull().orEmpty()
+            return LocationHierarchy(
+                city = immediateParent.ifBlank { name },
+                province = administrativeParents.lastOrNull().orEmpty(),
+                country = country,
+            )
+        }
         if (administrativeParents.isEmpty()) {
             val province = name.takeIf { it in DIRECT_CONTROLLED_MUNICIPALITIES }.orEmpty()
             return LocationHierarchy(city = name, province = province, country = country)
@@ -466,6 +508,15 @@ internal object XiaomiWeatherParser {
     private fun String.toWeatherInt(): Int? =
         toDoubleOrNull()?.takeIf(Double::isFinite)?.roundToInt()
 
+    private fun String.toWebUrlOrNull(): String? {
+        val normalized = when {
+            startsWith("https://", ignoreCase = true) -> this
+            startsWith("http://", ignoreCase = true) -> "https://${substring(7)}"
+            else -> return null
+        }
+        return normalized.takeIf { it.length <= MAX_ATTRIBUTION_URL_LENGTH }
+    }
+
     private fun String?.toSunTimes(): Pair<String, String>? {
         val values = this?.split('|').orEmpty()
         return if (values.size == 2 && values.all(String::isNotBlank)) {
@@ -496,10 +547,10 @@ internal object XiaomiWeatherParser {
         val country: String,
     )
 
-    private const val WEATHERCN_PREFIX = "weathercn:"
     private const val UNKNOWN_TEMPERATURE = "UNKNOWN"
     private const val UNKNOWN_WEATHER_CODE = "99"
-    private val CHINA_CITY_ID = Regex("\\d{9}")
+    private const val DEFAULT_TIMEZONE_OFFSET_SECONDS = 8 * 60 * 60
+    private const val MAX_ATTRIBUTION_URL_LENGTH = 2_048
     private val COMPACT_DATE: DateTimeFormatter = DateTimeFormatter.BASIC_ISO_DATE
     private val CLOCK_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
     private val DIRECT_CONTROLLED_MUNICIPALITIES = setOf("北京", "上海", "天津", "重庆")

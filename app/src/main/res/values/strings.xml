@@ -32,7 +32,6 @@
     <string name="green_land">北京绿地中心</string>
     <string name="hint_edittext_add_city">Enter city and region</string>
     <string name="hot_city_json">{ hotCities: [ { cityId: 101010100, city: 北京, county: 北京, province: 北京, country: 中国 }, { cityId: 101030100, city: 天津, county: 天津, province: 天津, country: 中国 }, { cityId: 101020100, city: 上海, county: 上海, province: 上海, country: 中国 }, { cityId: 101280101, city: 广州, county: 广州, province: 广东, country: 中国 }, { cityId: 101040100, city: 重庆, county: 重庆, province: 重庆, country: 中国 }, { cityId: 101190101, city: 南京, county: 南京, province: 江苏, country: 中国 }, { cityId: 101210101, city: 杭州, county: 杭州, province: 浙江, country: 中国 }, { cityId: 101230101, city: 福州, county: 福州, province: 福建, country: 中国 }, { cityId: 101250101, city: 长沙, county: 长沙, province: 湖南, country: 中国 }, { cityId: 101200101, city: 武汉, county: 武汉, province: 湖北, country: 中国 }, { cityId: 101310101, city: 海口, county: 海口, province: 海南, country: 中国 }, { cityId: 101270101, city: 成都, county: 成都, province: 四川, country: 中国 }, { cityId: 101110101, city: 西安, county: 西安, province: 陕西, country: 中国 }, { cityId: 101230201, city: 厦门, county: 厦门, province: 福建, country: 中国 }, { cityId: 101190401, city: 苏州, county: 苏州, province: 江苏, country: 中国 } ] }</string>
-    <string name="icp_num"> 京ICP备18020659号-20A </string>
     <string name="real_feel_temp">Sensible temperature</string>
     <string name="refresh">Refresh</string>
     <string name="relative_Humidity">Relative humidity</string>
@@ -82,17 +81,14 @@
     <string name="weather_location_default_name">Location Service</string>
     <string name="weather_null">--</string>
     <string name="weather_pager_aqi_text">Air Quality </string>
-    <string name="weather_pager_bottom_related_text">Related weather data from</string>
     <string name="weather_pager_jump_text">Load More</string>
     <string name="weather_pager_update_text">Updated on %1$s</string>
     <string name="weather_pager_week_and_date_text">%1$s %2$s</string>
-    <string name="weather_parnter_description">Weather data from Beijing Weather, Caiyun Weather, and CNEMC via Xiaomi Weather</string>
-    <string name="weather_parnter_text">Beijing Weather, Caiyun, CNEMC</string>
     <string name="weather_percent_symbol">%</string>
     <string name="weather_startup_notice_title">Usage Notice</string>
     <string name="weather_startup_notice_exit">Exit</string>
     <string name="weather_startup_notice_continue">Continue</string>
-    <string name="weather_startup_notice_message">This is an unofficial open-source version <b>completely rewritten by an individual developer with a modern Android technology stack</b>. It has no affiliation, authorization, or partnership with Smartisan, Hammer Technology, or Xiaomi and is intended solely for learning and technical exchange.\n\nData is retrieved directly from Xiaomi Weather, and location is used only to match your city. The app has no account system, ads, analytics, or relay server. All data remains on your device, and the complete source code is open on GitHub. Weather information is for reference only.</string>
+    <string name="weather_startup_notice_message">This is an unofficial open-source version <b>completely rewritten by an individual developer with a modern Android technology stack</b>. It has no affiliation, authorization, or partnership with Smartisan, Hammer Technology, Xiaomi, or AccuWeather and is intended solely for learning and technical exchange.\n\nData is retrieved through Xiaomi Weather; global-city data is provided by AccuWeather. Location is used only to match your city. The app has no account system, ads, analytics, or relay server. All data remains on your device, and the complete source code is open on GitHub. Weather information is for reference only.</string>
     <string name="weather_request_location_permission_tips_cancel">Cancel</string>
     <string name="weather_request_location_permission_tips_message">Turn on location services to allow “Weather” to determine your location, click to go to settings</string>
     <string name="weather_request_location_permission_tips_setting">Go to settings</string>

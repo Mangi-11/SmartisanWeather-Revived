@@ -51,8 +51,10 @@ import com.smartisan.weather.util.ThemeBean
 import com.smartisan.weather.util.ThemeUtils
 import com.smartisan.weather.util.Utility
 import java.text.SimpleDateFormat
+import java.time.ZoneOffset
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * 单个城市天气内容视图：城市名、温度、逐小时/逐日预报、预警、刷新按钮、C/F 切换，
@@ -160,8 +162,6 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         private set
     var highTempAnimView: WeatherTempAnimView? = null
         private set
-    var partnerLabelView: TextView? = null
-        private set
     var forecastRecyclerView: VerticalRecyclerView? = null
         private set
     private var forecastAdapter: WeatherForecastRecyclerAdapter? = null
@@ -239,28 +239,14 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             return ctx.getString(R.string.weather_location_default_name)
         }
         return try {
-            val locName = location.mLocationName
-            val name: String
-            if (ctx.getString(R.string.weather_china) == location.mCountry) {
-                name = if (locName?.equals(location.mProvince, ignoreCase = true) == true ||
-                    !Utility.isDigitalOnly(location.mLocationKey)
-                ) {
-                    Utility.fristCharToUpdderCase(locName ?: "")
-                } else {
-                    Utility.fristCharToUpdderCase(locName ?: "") + " - " +
-                        Utility.fristCharToUpdderCase(location.mProvince ?: "")
-                }
+            val name = Utility.fristCharToUpdderCase(location.mLocationName.orEmpty())
+            val parent = location.mLocationParentName.orEmpty()
+                .ifBlank { location.mProvince.orEmpty() }
+            if (parent.isBlank() || name.equals(parent, ignoreCase = true)) {
+                name
             } else {
-                name = if (locName?.equals(location.mLocationParentName, ignoreCase = true) == true ||
-                    !Utility.isDigitalOnly(location.mLocationKey)
-                ) {
-                    Utility.fristCharToUpdderCase(locName ?: "")
-                } else {
-                    Utility.fristCharToUpdderCase(locName ?: "") + " - " +
-                        Utility.fristCharToUpdderCase(location.mLocationParentName ?: "")
-                }
+                "$name - ${Utility.fristCharToUpdderCase(parent)}"
             }
-            name
         } catch (e: Exception) {
             DebugLog.log(TAG, "", e)
             ""
@@ -891,8 +877,11 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         }
         var updateTime = ctx.getString(R.string.weather_null)
         try {
-            updateTime = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
-                .format(Date(weather.observe!!.getPubdate()!!.toLong()))
+            updateTime = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault()).apply {
+                timeZone = runCatching {
+                    TimeZone.getTimeZone(ZoneOffset.ofTotalSeconds(weather.timezoneOffsetSeconds))
+                }.getOrDefault(TimeZone.getTimeZone("GMT+08:00"))
+            }.format(Date(weather.observe!!.getPubdate()!!.toLong()))
         } catch (e: Exception) {
             DebugLog.log(DebugLog.TAG_EXCEPTION, "Observation time formatting failed", e)
         }
@@ -930,9 +919,8 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         observerAdapter.submitForecasts(weather.hourForecast!!.getmInfo()) {
             hourForecastView.scrollToPosition(0)
         }
-        forecastAdapter!!.setData(weather, drawItem.locationData!!.mCountry)
+        forecastAdapter!!.setData(weather)
         forecastRecyclerView!!.adapter = forecastAdapter
-        partnerLabelView!!.text = Utility.getParnterText(ctx)
         setAllViewClickable(true)
     }
 
@@ -1008,8 +996,6 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         highFTextView = findViewById(R.id.content_tmp_highf)
         lowTempAnimView = findViewById(R.id.viewflipper1)
         highTempAnimView = findViewById(R.id.viewflipper2)
-        partnerLabelView = findViewById(R.id.content_lable)!!
-        partnerLabelView!!.setOnClickListener(this)
         addButton!!.setOnClickListener(this)
         listButton!!.setOnClickListener(this)
         centigradeIcon!!.setOnClickListener(this)
@@ -1065,11 +1051,6 @@ class WeatherContentViewUtil @JvmOverloads constructor(
             return
         }
         val id = view.id
-        if (id == R.id.content_lable) {
-            DebugLog.log(TAG, "click parnter view")
-            controller!!.openParnterDetailPage()
-            return
-        }
         if (id == R.id.group_alert) {
             DebugLog.log(TAG, "click alert view")
             controller!!.openAlerDetailPage()

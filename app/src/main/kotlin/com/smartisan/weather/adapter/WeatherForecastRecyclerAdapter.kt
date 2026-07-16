@@ -38,7 +38,6 @@ class WeatherForecastRecyclerAdapter(
     private var forecasts: ArrayList<NewForecastInfo>? = null
     private var observe: Observe? = null
     private var fValuesVisible: Boolean = false
-    private var isChina: Boolean = false
     private val isChinese: Boolean =
         context.resources.configuration.locales[0].language == Locale.CHINESE.language
 
@@ -217,7 +216,7 @@ class WeatherForecastRecyclerAdapter(
         }
     }
 
-    fun setData(weather: Weather, country: String?) {
+    fun setData(weather: Weather) {
         this.weather = weather
         forecasts = dedupeByDate(weather.newForecast)
         viewTypes.clear()
@@ -227,7 +226,6 @@ class WeatherForecastRecyclerAdapter(
             }
         }
         observe = weather.observe
-        isChina = str(R.string.weather_china) == country
         if (pollutantsList.isNotEmpty()) pollutantsList.clear()
         if (airList.isNotEmpty()) airList.clear()
         val obs = observe
@@ -256,10 +254,18 @@ class WeatherForecastRecyclerAdapter(
             val feelC = if (TextUtils.isEmpty(obs.getBodyFeelC())) str(R.string.weather_null) else obs.getBodyFeelC() + str(R.string.weather_celsius_symbol)
             val feelF = if (TextUtils.isEmpty(obs.getBodyFeelF())) str(R.string.weather_null) else obs.getBodyFeelF() + str(R.string.weather_fahrenheit_symbol)
             val uvLevel = weather.allergy?.getUvLevel()?.takeIf(String::isNotBlank)
-            val uvLabel = if (isChina && uvLevel != null) str(R.string.weather_forecast_ultraviolet_radiation) else ""
+            val uvLabel = if (uvLevel != null) str(R.string.weather_forecast_ultraviolet_radiation) else ""
             airList.add(String.format(str(R.string.weather_forecast_templet_icon), str(R.string.real_feel_temp), feelC, feelF, uvLabel, uvLevel.orEmpty(), ""))
             viewTypes.add(3)
-            if (isChina) {
+            val pollutantValues = listOf(
+                obs.getPm10(),
+                obs.getPm2_5(),
+                obs.getNo2(),
+                obs.getO3(),
+                obs.getSo2(),
+                obs.getCo(),
+            )
+            if (pollutantValues.any { !it.isNullOrBlank() }) {
                 if (airList.isNotEmpty()) {
                     viewTypes.add(4)
                 }

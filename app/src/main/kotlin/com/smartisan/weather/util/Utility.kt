@@ -313,10 +313,6 @@ object Utility {
     }
 
     @JvmStatic
-    fun getParnterText(context: Context): String =
-        context.getString(R.string.weather_parnter_text)
-
-    @JvmStatic
     fun getSystemTemperatureUnit(context: Context): Int =
         WeatherSettings.getInstance(context).tempUnit.value
 

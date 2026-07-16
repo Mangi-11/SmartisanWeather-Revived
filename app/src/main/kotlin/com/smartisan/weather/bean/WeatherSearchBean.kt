@@ -17,8 +17,10 @@ class WeatherSearchBean : Serializable {
     @JvmField var countyEn: String? = null
     @JvmField var id: String? = null
     @JvmField var province: String? = null
+    @JvmField var searchContext: String? = null
 
     override fun toString(): String =
         "id  - $id\ncityId  - $cityId\ncountry  - $country\nprovince  - $province" +
-            "\ncity  - $city\ncountyEn - $countyEn\ncountryPinyin  - $countryPinyin"
+            "\ncity  - $city\ncountyEn - $countyEn\ncountryPinyin  - $countryPinyin" +
+            "\nsearchContext  - $searchContext"
 }

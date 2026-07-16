@@ -8,11 +8,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.HapticFeedbackConstants
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.Animation
-import android.widget.AbsListView
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -32,7 +29,6 @@ import com.smartisan.weather.ui.navigation.WeatherTransitionActivity
 import com.smartisan.weather.ui.navigation.startWeatherActivityForResult
 import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.util.Constants
-import com.smartisan.weather.util.Utility
 import com.smartisan.weather.util.centeredPhoneContentInsets
 import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
@@ -50,8 +46,6 @@ class CityListActivity : WeatherTransitionActivity() {
     private lateinit var titleBar: TitleBar
     private lateinit var addButton: ImageView
     private lateinit var doneButton: ImageView
-    private lateinit var sourceGroup: View
-    private lateinit var footerSource: View
     private var latestState = CityListUiState()
     private var deleteDialog: MenuDialog? = null
     private var pendingDeletePosition: Int = -1
@@ -142,14 +136,6 @@ class CityListActivity : WeatherTransitionActivity() {
 
     private fun setupCityList() {
         listView = findViewById(R.id.dragsortlistview)
-        sourceGroup = findViewById(R.id.source_group)
-        findViewById<TextView>(R.id.source_logo).text = Utility.getParnterText(this)
-
-        footerSource = layoutInflater.inflate(R.layout.footer_source_logo, listView, false).apply {
-            findViewById<TextView>(R.id.source_logo).text = Utility.getParnterText(this@CityListActivity)
-        }
-        listView.addFooterView(footerSource, null, false)
-        listView.setFooterDividersEnabled(false)
 
         listAdapter = CityListAdapter(this, ::requestDelete)
         listView.adapter = listAdapter
@@ -159,7 +145,6 @@ class CityListActivity : WeatherTransitionActivity() {
         listView.setDragSortListener(object : DragSortListView.DragSortListener {
             override fun onMove(from: Int, to: Int) {
                 listAdapter.moveDrag(from, to)
-                listView.post(::updateSourcePlacement)
             }
 
             override fun onDrop(from: Int, to: Int) {
@@ -181,18 +166,6 @@ class CityListActivity : WeatherTransitionActivity() {
                 setAllViewsClickable(true)
             }
         })
-        listView.setOnScrollListener(object : AbsListView.OnScrollListener {
-            override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) = Unit
-
-            override fun onScroll(
-                view: AbsListView?,
-                firstVisibleItem: Int,
-                visibleItemCount: Int,
-                totalItemCount: Int,
-            ) {
-                updateSourcePlacement()
-            }
-        })
     }
 
     private fun collectState() {
@@ -201,7 +174,6 @@ class CityListActivity : WeatherTransitionActivity() {
                 viewModel.uiState.collect { state ->
                     latestState = state
                     listAdapter.submitState(state)
-                    listView.post(::updateSourcePlacement)
                 }
             }
         }
@@ -211,8 +183,6 @@ class CityListActivity : WeatherTransitionActivity() {
         val baseRootPaddingLeft = root.paddingLeft
         val baseRootPaddingRight = root.paddingRight
         val baseListPaddingBottom = listView.paddingBottom
-        val sourceParams = sourceGroup.layoutParams as ViewGroup.MarginLayoutParams
-        val baseSourceMarginBottom = sourceParams.bottomMargin
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
             val bars = insets.safeDrawingInsets()
@@ -222,9 +192,6 @@ class CityListActivity : WeatherTransitionActivity() {
                 right = baseRootPaddingRight + horizontalInsets.right,
             )
             listView.updatePadding(bottom = baseListPaddingBottom + bars.bottom)
-            sourceParams.bottomMargin = baseSourceMarginBottom + bars.bottom
-            sourceGroup.layoutParams = sourceParams
-            listView.post(::updateSourcePlacement)
             insets
         }
         ViewCompat.requestApplyInsets(root)
@@ -319,7 +286,6 @@ class CityListActivity : WeatherTransitionActivity() {
                     }
                     listView.setDragEnabled(true)
                     setAllViewsClickable(true)
-                    listView.post(::updateSourcePlacement)
                 }
             }
         })
@@ -376,30 +342,6 @@ class CityListActivity : WeatherTransitionActivity() {
                 VibrationEffect.DEFAULT_AMPLITUDE,
             ),
         )
-    }
-
-    private fun updateSourcePlacement() {
-        if (!::listView.isInitialized) return
-        val firstRow = listView.getChildAt(0)
-        val rowHeight = firstRow?.height ?: 0
-        val sourceParams = sourceGroup.layoutParams as ViewGroup.MarginLayoutParams
-        if (sourceGroup.measuredHeight == 0) {
-            sourceGroup.measure(
-                View.MeasureSpec.makeMeasureSpec(listView.width, View.MeasureSpec.AT_MOST),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            )
-        }
-        // 与原版 getAllItemHeight/useStaticSourceLogo 一致：首行高度 × 城市数，
-        // 再预留数据源文字本身和上下 margin；不依赖 HeaderViewListAdapter 的滚动范围。
-        val cityRowsHeight = rowHeight * latestState.cities.size
-        val sourceSpace = sourceGroup.measuredHeight + sourceParams.topMargin + sourceParams.bottomMargin
-        val contentFits = cityRowsHeight < listView.height - sourceSpace
-        sourceGroup.visibility = if (contentFits) View.VISIBLE else View.GONE
-        footerSource.visibility = if (contentFits) View.GONE else View.VISIBLE
-        if (contentFits) {
-            // ListView 会在 footer 可见性变化后重建子项；确保静态数据源仍位于列表绘制层之上。
-            sourceGroup.bringToFront()
-        }
     }
 
     private companion object {

@@ -27,10 +27,10 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 /**
- * 小米天气中国区客户端。
+ * 小米天气客户端。
  *
- * 小米的 `weather/all` 是混合数据接口：城市级天气、彩云网格数据和中国环境监测总站
- * 空气质量会被合并成一次响应。应用只使用 `weathercn:` 城市，不接入第二天气源。
+ * 中国 `weathercn:` 城市使用小米混合数据，全球 `accu:` 城市由同一接口转接
+ * AccuWeather。两类城市共用请求、解析与缓存链路。
  */
 class WeatherApiClient private constructor() {
 
@@ -44,7 +44,6 @@ class WeatherApiClient private constructor() {
         // 小米公开客户端协议中的固定标识，不是用户密钥，也不应写入日志。
         private const val APP_KEY = "weather20151024"
         private const val SIGN = "zUFJoAR2ZVrDy1vF3D07"
-        private const val LOCATION_KEY_PREFIX = "weathercn:"
         private const val LOCALE = "zh_cn"
         private const val FORECAST_DAYS = "15"
 
@@ -69,22 +68,23 @@ class WeatherApiClient private constructor() {
     /**
      * 构建混合天气请求。
      *
-     * 当前服务端会按 [cityId] 解析彩云所需的标准坐标；线上交叉验证表明传入 `0,0`、
-     * 任意坐标或城市标准坐标均会规范化为相同城市数据，因此遵循小米文档使用固定值。
+     * 当前服务端会按 [cityKey] 解析实际城市；线上交叉验证表明中国和全球城市传入
+     * `0,0` 均会按 locationKey 规范化为相同数据，因此无需在 Room 重复保存经纬度。
      */
-    fun buildWeatherUrl(cityId: String): String {
-        val normalizedCityId = normalizeCityId(cityId)
-        require(normalizedCityId.matches(CHINA_CITY_ID)) { "Invalid China weather city id" }
+    fun buildWeatherUrl(cityKey: String): String {
+        val locationKey = requireNotNull(XiaomiLocationKey.parse(cityKey)) {
+            "Invalid Xiaomi weather location key"
+        }
         return buildUrl(
             WEATHER_URL,
             listOf(
                 "latitude" to "0",
                 "longitude" to "0",
-                "locationKey" to "$LOCATION_KEY_PREFIX$normalizedCityId",
+                "locationKey" to locationKey.requestKey,
                 "days" to FORECAST_DAYS,
                 "appKey" to APP_KEY,
                 "sign" to SIGN,
-                "isGlobal" to "false",
+                "isGlobal" to locationKey.isGlobal.toString(),
                 "locale" to LOCALE,
             ),
         )
@@ -192,9 +192,9 @@ class WeatherApiClient private constructor() {
         }
     }
 
-    suspend fun fetchWeather(cityId: String): Weather? {
+    suspend fun fetchWeather(cityKey: String): Weather? {
         return try {
-            parseWeather(httpGet(buildWeatherUrl(cityId))).also { weather ->
+            parseWeather(httpGet(buildWeatherUrl(cityKey))).also { weather ->
                 when {
                     weather == null -> debugWarning("Weather response could not be parsed")
                     !weather.isComplete -> debugWarning("Weather response is incomplete")
@@ -225,7 +225,7 @@ class WeatherApiClient private constructor() {
         }
     }
 
-    /** 坐标反查可能成功但不含中国天气城市，因此结果本身可为空。 */
+    /** 坐标反查可能成功但不含可用的 Xiaomi locationKey，因此结果本身可为空。 */
     suspend fun resolveCityByCoordinatesResult(
         latitude: Double,
         longitude: Double,
@@ -266,11 +266,6 @@ class WeatherApiClient private constructor() {
                 statusCode in 500..599
     }
 }
-
-private val CHINA_CITY_ID = Regex("\\d{9}")
-
-private fun normalizeCityId(cityId: String): String =
-    cityId.trim().removePrefix("weathercn:")
 
 private fun buildUrl(baseUrl: String, parameters: List<Pair<String, String>>): String =
     parameters.joinToString(prefix = "$baseUrl?", separator = "&") { (name, value) ->

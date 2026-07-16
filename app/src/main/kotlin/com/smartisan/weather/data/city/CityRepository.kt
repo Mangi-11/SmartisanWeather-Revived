@@ -40,7 +40,7 @@ class CityRepository(context: Context) {
                 entity = SavedCityEntity(
                     locationKey = city.cityId,
                     locationName = city.county.ifBlank { city.city },
-                    locationParentName = city.city,
+                    locationParentName = city.displayParentName,
                     country = city.country,
                     province = city.province,
                     sortOrder = 0,
@@ -60,21 +60,15 @@ class CityRepository(context: Context) {
     }
 
     /** 添加定位城市 */
-    suspend fun setLocationCity(
-        cityId: String,
-        name: String,
-        parentName: String,
-        province: String,
-        country: String,
-    ): AddResult = withContext(Dispatchers.IO) {
+    suspend fun setLocationCity(city: SearchResultCity): AddResult = withContext(Dispatchers.IO) {
         val replaced = dao.replaceLocationCity(
             entity =
                 SavedCityEntity(
-                    locationKey = cityId,
-                    locationName = name,
-                    locationParentName = parentName,
-                    country = country,
-                    province = province,
+                    locationKey = city.cityId,
+                    locationName = city.county.ifBlank { city.city },
+                    locationParentName = city.displayParentName,
+                    country = city.country,
+                    province = city.province,
                     sortOrder = 1,
                 ),
             maxCities = MAX_CITIES,
@@ -133,7 +127,7 @@ class CityRepository(context: Context) {
             CachedWeatherRecord(json = json, updatedAtMillis = cache.lastUpdate)
         }
 
-    /** 搜索城市。小米中国区接口一次返回完整结果，不提供分页。 */
+    /** 搜索中国及全球城市。小米接口一次返回完整结果，不提供分页。 */
     suspend fun searchCities(query: String): List<SearchResultCity> = withContext(Dispatchers.IO) {
         apiClient.searchCities(query)
     }
@@ -144,7 +138,7 @@ class CityRepository(context: Context) {
             apiClient.searchCitiesResult(query)
         }
 
-    /** 用天气服务的坐标反查接口直接取得 canonical `weathercn` 城市。 */
+    /** 用天气服务的坐标反查接口取得 canonical `weathercn` 或 `accu` 城市。 */
     suspend fun resolveCityByCoordinates(
         latitude: Double,
         longitude: Double,

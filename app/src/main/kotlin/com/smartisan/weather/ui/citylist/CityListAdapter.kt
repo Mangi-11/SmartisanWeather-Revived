@@ -13,7 +13,7 @@ import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.Weather
 import com.smartisan.weather.data.settings.WeatherSettings
 import com.smartisan.weather.util.WeatherCodeMapping
-import java.util.Calendar
+import java.time.Instant
 
 /** 原版城市编辑列表的数据适配器，同时维护一次拖拽手势内的临时顺序。 */
 class CityListAdapter(
@@ -199,8 +199,7 @@ class CityListAdapter(
         val parent = city.locationParentName
         return if (
             name.equals(parent, ignoreCase = true) ||
-            parent.isBlank() ||
-            city.locationKey.any { !it.isDigit() }
+            parent.isBlank()
         ) {
             name.replaceFirstChar { it.titlecase() }
         } else {
@@ -255,9 +254,8 @@ class CityListAdapter(
         }
         if (sunTimes.size != 2) return false
 
-        val now = Calendar.getInstance()
-        val nowInMinutes = now.get(Calendar.HOUR_OF_DAY) * MINUTES_PER_HOUR +
-            now.get(Calendar.MINUTE)
+        val now = weather.localTimeAt(Instant.now())
+        val nowInMinutes = now.hour * MINUTES_PER_HOUR + now.minute
         return nowInMinutes < sunTimes[0] || nowInMinutes >= sunTimes[1]
     }
 

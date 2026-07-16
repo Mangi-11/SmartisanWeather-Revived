@@ -15,6 +15,7 @@ class Weather : Serializable {
     var newForecast: ArrayList<NewForecastInfo>? = null
     var observe: Observe? = null
     var source: String? = null
+    var timezoneOffsetSeconds: Int = 8 * 60 * 60
 
     fun isDataComplete(): Boolean {
         val obs = observe ?: return false

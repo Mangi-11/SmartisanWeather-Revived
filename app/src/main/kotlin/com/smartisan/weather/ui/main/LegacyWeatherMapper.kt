@@ -168,6 +168,7 @@ private fun Weather.toLegacyWeather(locationKey: String?): LegacyWeather {
         legacy.hourForecast = LegacyHourForecast().apply { setmInfo(legacyHourly) }
         legacy.alert = legacyAlert
         legacy.allergy = legacyAllergy
+        legacy.timezoneOffsetSeconds = timezoneOffsetSeconds
     }
 }
 
