@@ -3,6 +3,10 @@ package com.smartisan.weather.widget
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.graphics.Color
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.method.TextKeyListener
@@ -15,7 +19,9 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
+import androidx.core.content.ContextCompat
 import com.smartisan.weather.R
+import com.smartisan.weather.util.ThemeUtils
 
 /**
  * 搜索栏，复刻自原版 Smartisan 系统 SearchBar。
@@ -87,6 +93,37 @@ class SearchBar : RelativeLayout, View.OnClickListener, TextWatcher {
         mClearTextView = findViewById(R.id.search_bar_clear_text)
         mRightViewContainer = findViewById(R.id.search_bar_right_view_container)
         mRightView = findViewById(R.id.search_bar_right_view)
+        if (ThemeUtils.isNightMode(context)) {
+            /*
+             * Keep the original search_field NinePatch so its pill silhouette,
+             * edge shading, intrinsic height and padding stay identical to the
+             * light theme. MULTIPLY only changes its palette.
+             */
+            mSearchEditLayout?.background?.mutate()?.colorFilter =
+                PorterDuffColorFilter(
+                    ContextCompat.getColor(context, R.color.app_surface_raised_color),
+                    PorterDuff.Mode.MULTIPLY,
+                )
+            /*
+             * The original magnifier is an alpha-mask PNG (30% black), so a
+             * regular tint would remain too dim on a dark surface. Preserve its
+             * exact pixels and normalize the original maximum alpha to 100%.
+             */
+            val searchIconColor =
+                ContextCompat.getColor(context, R.color.search_icon_normal)
+            findViewById<View>(R.id.search_bar_left_icon)
+                .background
+                ?.mutate()
+                ?.colorFilter =
+                ColorMatrixColorFilter(
+                    floatArrayOf(
+                        0f, 0f, 0f, 0f, Color.red(searchIconColor).toFloat(),
+                        0f, 0f, 0f, 0f, Color.green(searchIconColor).toFloat(),
+                        0f, 0f, 0f, 0f, Color.blue(searchIconColor).toFloat(),
+                        0f, 0f, 0f, SEARCH_ICON_ALPHA_SCALE, 0f,
+                    ),
+                )
+        }
         mSearchEditLayout?.setOnClickListener(this)
         mSearchEditor?.setOnClickListener(this)
         mCancelButton?.setOnClickListener(this)
@@ -268,5 +305,10 @@ class SearchBar : RelativeLayout, View.OnClickListener, TextWatcher {
         animatorSet.interpolator = interpolator
         animatorSet.start()
         postDelayed(AnimationRunnable(z), if (z) 300L else 200L)
+    }
+
+    private companion object {
+        /** Original normal search icon peaks at alpha 77 out of 255. */
+        private const val SEARCH_ICON_ALPHA_SCALE = 255f / 77f
     }
 }

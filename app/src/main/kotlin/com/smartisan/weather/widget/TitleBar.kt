@@ -32,7 +32,7 @@ class TitleBar @JvmOverloads constructor(
         resources.getDimensionPixelSize(R.dimen.title_bar_center_limite)
 
     init {
-        setBackgroundColor(context.getColor(android.R.color.white))
+        setBackgroundColor(context.getColor(R.color.app_top_bar_background))
         clipChildren = false
         clipToPadding = false
         elevation = 0.11f

@@ -87,6 +87,8 @@
             android:layout_marginRight="@dimen/item_pager_content_forecast_right">
             <ImageView
                 android:id="@+id/viewgroup_topbox_bg"
+                android:foreground="@drawable/weather_top_card_scrim"
+                android:foregroundGravity="fill"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
             <LinearLayout

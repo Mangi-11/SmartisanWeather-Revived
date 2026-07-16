@@ -8,12 +8,15 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
     <style name="weather_theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">#ffffff</item>
+        <item name="android:statusBarColor">@color/app_top_bar_background</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="WeatherWidgetConfigureTheme" parent="weather_theme">

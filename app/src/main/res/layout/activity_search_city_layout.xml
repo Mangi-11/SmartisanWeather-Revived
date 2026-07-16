@@ -4,13 +4,13 @@
     android:id="@+id/search_city_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/app_root_background">
 
     <com.smartisan.weather.widget.InsetTopBarLayout
         android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white">
+        android:background="@color/app_top_bar_background">
 
         <com.smartisan.weather.widget.SearchBar
             android:id="@+id/search_bar"

@@ -101,7 +101,7 @@
                 android:src="@drawable/search_bar_secondary_filter_divider"/>
             <TextView
                 android:textSize="13.5sp"
-                android:textColor="#a3a3a3"
+                android:textColor="@color/app_filter_text_color"
                 android:id="@+id/search_bar_secondary_filter_btn"
                 android:paddingRight="4dp"
                 android:layout_width="wrap_content"

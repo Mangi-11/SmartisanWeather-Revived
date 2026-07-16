@@ -1,5 +1,6 @@
 package com.smartisan.weather.adapter
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import com.smartisan.weather.R
 import com.smartisan.weather.bean.HourForecastInfo
 import com.smartisan.weather.custom.WeatherTempAnimView
 import com.smartisan.weather.util.ResMappingUtil
+import com.smartisan.weather.util.ThemeUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -75,6 +77,11 @@ internal class WeatherObserverRecyclerAdapter :
             ResMappingUtil.getWeatherResId(item.weatherCode.orEmpty())
                 .getLittleIconShadow(item.isNight),
         )
+        holder.iconView.imageTintList = if (ThemeUtils.isNightMode(context)) {
+            ColorStateList.valueOf(context.getColor(R.color.forecast_icon_tint))
+        } else {
+            null
+        }
 
         val sunDescription = item.sunDescription
         if (sunDescription.isNullOrEmpty()) {

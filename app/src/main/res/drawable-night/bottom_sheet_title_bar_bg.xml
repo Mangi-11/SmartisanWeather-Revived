@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:endColor="@color/app_surface_color"
+        android:startColor="@color/app_surface_raised_color" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/app_card_outline_color" />
+    <corners
+        android:topLeftRadius="12dp"
+        android:topRightRadius="12dp" />
+</shape>

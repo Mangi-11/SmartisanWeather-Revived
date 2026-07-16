@@ -1,6 +1,7 @@
 package com.smartisan.weather.adapter
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import com.smartisan.weather.bean.Weather
 import com.smartisan.weather.custom.WeatherTempAnimView
 import com.smartisan.weather.util.DebugLog
 import com.smartisan.weather.util.ResMappingUtil
+import com.smartisan.weather.util.ThemeUtils
 import com.smartisan.weather.util.Utility
 import java.text.DecimalFormat
 import java.util.Calendar
@@ -114,6 +116,11 @@ class WeatherForecastRecyclerAdapter(
             val info = forecastItems[position]
             holder.p.text = String.format(str(R.string.weather_pager_week_and_date_text), formatDate(info.getDate()!!), Utility.getLocaleWeekday(context, info.getWeekDay()!!))
             holder.q.setImageResource(ResMappingUtil.getWeatherResId(info.getWeatherCodeAm() + "").getLittleIconShadow(false))
+            holder.q.imageTintList = if (ThemeUtils.isNightMode(context)) {
+                ColorStateList.valueOf(context.getColor(R.color.forecast_icon_tint))
+            } else {
+                null
+            }
             if (info.getLowcTemp() == Integer.MAX_VALUE || info.getLowfTemp() == Integer.MAX_VALUE ||
                 info.getHighCTemp() == Integer.MAX_VALUE || info.getHighfTemp() == Integer.MAX_VALUE
             ) {

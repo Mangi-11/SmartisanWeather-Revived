@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
@@ -54,6 +55,9 @@ class WeatherLicenseActivity : ComponentActivity() {
             javaScriptEnabled = false
             setSupportZoom(false)
         }
+        webView.setBackgroundColor(
+            ContextCompat.getColor(this, R.color.web_content_background),
+        )
         webView.loadUrl(assetUrl)
 
         applySystemBarInsets(root)

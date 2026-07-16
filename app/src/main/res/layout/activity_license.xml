@@ -2,13 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/license_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/web_content_background">
     <com.smartisan.weather.widget.InsetTopBarLayout
         android:id="@+id/top_bar_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:background="@color/white">
+        android:background="@color/app_top_bar_background">
         <com.smartisan.weather.widget.TitleBar
             android:id="@+id/title_bar"
             android:layout_width="match_parent"

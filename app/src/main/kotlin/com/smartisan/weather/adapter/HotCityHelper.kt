@@ -12,7 +12,9 @@ import com.smartisan.weather.R
 import com.smartisan.weather.bean.SmartisanLocation
 import com.smartisan.weather.bean.WeatherSearchBean
 import com.smartisan.weather.custom.FlowLayout
+import com.smartisan.weather.custom.NightWeatherActionDrawable
 import com.smartisan.weather.data.city.CityRepository
+import com.smartisan.weather.util.ThemeUtils
 import com.smartisan.weather.util.Utility
 
 /**
@@ -65,13 +67,37 @@ class HotCityHelper(
             view.layoutParams = lp
         }
         val textView = view.findViewById<TextView>(R.id.tv_city_name) ?: return
-        if (position == 0) {
-            textView.background =
-                ContextCompat.getDrawable(ctx, R.drawable.selector_location_city_item)
+        val isLocationItem = position == 0
+        val backgroundRes = if (isLocationItem) {
+            R.drawable.selector_location_city_item
         } else {
-            textView.background =
-                ContextCompat.getDrawable(ctx, R.drawable.selector_hot_city_item)
+            R.drawable.selector_hot_city_item
         }
+        val originalBackground = ContextCompat.getDrawable(ctx, backgroundRes)?.mutate()
+        textView.background =
+            if (ThemeUtils.isNightMode(ctx) && originalBackground != null) {
+                /*
+                 * The original NinePatch owns the pill outline, transparent shadow
+                 * margin, content padding and (for the location item) arrow artwork.
+                 * Recolor its pixels instead of replacing it with a generic shape.
+                 */
+                NightWeatherActionDrawable(
+                    source = originalBackground,
+                    normalSurfaceColor =
+                        ContextCompat.getColor(ctx, R.color.app_surface_color),
+                    pressedSurfaceColor =
+                        ContextCompat.getColor(ctx, R.color.app_surface_pressed_color),
+                    disabledSurfaceColor =
+                        ContextCompat.getColor(ctx, R.color.app_surface_disabled_color),
+                    embeddedIconColor = if (isLocationItem) {
+                        ContextCompat.getColor(ctx, R.color.app_tertiary_text_color)
+                    } else {
+                        null
+                    },
+                )
+            } else {
+                originalBackground
+            }
         val bean = a[position]
         val sb = StringBuilder()
         sb.append(bean.city)

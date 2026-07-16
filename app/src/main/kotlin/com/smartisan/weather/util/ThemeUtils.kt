@@ -1,5 +1,7 @@
 package com.smartisan.weather.util
 
+import android.content.Context
+import android.content.res.Configuration
 import android.text.TextUtils
 import com.smartisan.weather.R
 
@@ -166,4 +168,9 @@ object ThemeUtils {
         a[str2]!!.setThemeType(str2)
         return a[str2]!!
     }
+
+    @JvmStatic
+    fun isNightMode(context: Context): Boolean =
+        context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
 }

@@ -2,6 +2,8 @@ package com.smartisan.weather.custom
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
+import android.graphics.ColorFilter
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
@@ -25,6 +27,8 @@ class CircleAnimButton(view: View) {
     @Volatile
     private var stopRequested: Boolean = false
     private var refreshBgRes: Int = R.drawable.selector_weather_refresh_sunny
+    private var refreshBackgroundDecorator: ((Drawable) -> Drawable)? = null
+    private var refreshIconFilter: ColorFilter? = null
 
     private val rotationAnimator: ObjectAnimator? = refreshIcon?.let { icon ->
         ObjectAnimator.ofFloat(icon, "rotation", 0f, 360f).apply {
@@ -40,6 +44,7 @@ class CircleAnimButton(view: View) {
                     imageButton?.isEnabled = true
                     imageButton?.isClickable = true
                     imageButton?.setBackgroundResource(refreshBgRes)
+                    applyRefreshBackgroundDecorator()
                 }
 
                 override fun onAnimationRepeat(animation: Animator) {
@@ -79,10 +84,37 @@ class CircleAnimButton(view: View) {
     fun setRefreshBgRes(res: Int) {
         refreshBgRes = res
         imageButton?.setBackgroundResource(res)
+        applyRefreshBackgroundDecorator()
     }
 
     fun setRefreshSrcRes(res: Int) {
         refreshIcon?.setBackgroundResource(res)
+        applyRefreshIconFilter()
+    }
+
+    fun setRefreshBackgroundDecorator(decorator: ((Drawable) -> Drawable)?) {
+        refreshBackgroundDecorator = decorator
+    }
+
+    fun setRefreshIconFilter(filter: ColorFilter?) {
+        refreshIconFilter = filter
+        applyRefreshIconFilter()
+    }
+
+    private fun applyRefreshBackgroundDecorator() {
+        val decorator = refreshBackgroundDecorator ?: return
+        val background = imageButton?.background?.mutate() ?: return
+        imageButton.background = decorator(background)
+    }
+
+    private fun applyRefreshIconFilter() {
+        refreshIcon?.background?.mutate()?.let { drawable ->
+            if (refreshIconFilter == null) {
+                drawable.clearColorFilter()
+            } else {
+                drawable.colorFilter = refreshIconFilter
+            }
+        }
     }
 
     fun setVisibility(visibility: Int) {

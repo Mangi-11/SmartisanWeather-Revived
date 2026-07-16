@@ -14,7 +14,7 @@
     <LinearLayout
         android:orientation="vertical"
         android:id="@+id/contentPanel"
-        android:background="#f5f5f5"
+        android:background="@color/app_dialog_surface_color"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <ListView

@@ -1,5 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App-wide semantic palette. Night values live in values-night/colors.xml. -->
+    <color name="app_page_background">#f5f5f5</color>
+    <color name="app_root_background">#ffffff</color>
+    <color name="app_top_bar_background">#ffffff</color>
+    <color name="app_surface_color">#ffffff</color>
+    <color name="app_surface_raised_color">#f7f7f7</color>
+    <color name="app_surface_pressed_color">#ececec</color>
+    <color name="app_surface_disabled_color">#f2f2f2</color>
+    <color name="app_dialog_surface_color">#f5f5f5</color>
+    <color name="app_divider_color">#e5e5e6</color>
+    <color name="app_row_divider_color">#f2f2f2</color>
+    <color name="app_primary_text_color">#cc000000</color>
+    <color name="app_secondary_text_color">#9a000000</color>
+    <color name="app_tertiary_text_color">#62000000</color>
+    <color name="app_quaternary_text_color">#4c000000</color>
+    <color name="app_faint_text_color">#26000000</color>
+    <color name="app_section_title_color">#4c000000</color>
+    <color name="app_neutral_muted_text_color">#b3b3b3</color>
+    <color name="app_filter_text_color">#a3a3a3</color>
+    <color name="app_accent_color">#e65c53</color>
+    <color name="app_accent_pressed_color">#c94d46</color>
+    <color name="app_accent_disabled_color">#66e65c53</color>
+    <color name="app_link_color">#5e80d0</color>
+    <color name="app_link_pressed_color">#8a8a8a</color>
+    <color name="app_link_disabled_color">#665e80d0</color>
+    <color name="app_on_accent_color">#ffffff</color>
+    <color name="app_card_outline_color">#14000000</color>
+    <color name="app_shadow_color">#1a000000</color>
+    <color name="title_bar_icon_normal">#cc000000</color>
+    <color name="title_bar_icon_pressed">#99000000</color>
+    <color name="title_bar_icon_disabled">#4c000000</color>
+    <color name="search_icon_normal">#73000000</color>
+    <color name="search_icon_disabled">#26000000</color>
+    <color name="page_indicator_normal">#26000000</color>
+    <color name="page_indicator_selected">#73000000</color>
+    <color name="weather_action_button_normal">#ffffff</color>
+    <color name="weather_action_button_pressed">#ececec</color>
+    <color name="weather_action_button_disabled">#f2f2f2</color>
+    <color name="weather_action_icon_color">#73000000</color>
+    <color name="weather_top_card_scrim">#00000000</color>
+    <color name="forecast_icon_tint">#73000000</color>
+    <color name="window_background_start">#f6f5f6</color>
+    <color name="window_background_end">#dcdcdc</color>
+    <color name="web_content_background">#ffffff</color>
+
     <color name="color_city_added">#62000000</color>
     <color name="compare_no_data_shadow_color">#19000000</color>
     <color name="divider_listview">#e5e5e6</color>

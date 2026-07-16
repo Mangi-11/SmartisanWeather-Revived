@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="color-scheme" content="light dark">
   <style>
     h1,
     h2,
@@ -151,6 +152,53 @@
       body {
         width: 720px;
         margin:30px 30px;
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        background-color: #25282d;
+      }
+      body {
+        color: #9fa1a4;
+        background-color: #25282d;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      h7 {
+        color: #d2d3d5;
+      }
+      a {
+        color: #ff7839;
+      }
+      a:hover {
+        color: #ff9a6d;
+      }
+      td,
+      th,
+      pre {
+        border-color: #404348;
+      }
+      hr {
+        border-bottom-color: #404348;
+      }
+      blockquote:before {
+        color: #717377;
+      }
+      code {
+        color: #f2f2f3;
+        background-color: #41464d;
+      }
+      pre {
+        background-color: #34373c;
+      }
+      pre code {
+        color: #d2d3d5;
+        background-color: transparent;
       }
     }
     @media print {

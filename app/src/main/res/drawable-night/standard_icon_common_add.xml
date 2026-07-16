@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <group
+        android:pivotX="18"
+        android:pivotY="18"
+        android:scaleX="0.583333"
+        android:scaleY="0.583333">
+        <path
+            android:fillColor="@color/title_bar_icon_normal"
+            android:pathData="M16,6 L20,6 L20,16 L30,16 L30,20 L20,20 L20,30 L16,30 L16,20 L6,20 L6,16 L16,16 Z" />
+    </group>
+</vector>

@@ -6,7 +6,7 @@
     <TextView
         android:textSize="@dimen/weather_hot_city_text_size"
         android:textStyle="bold"
-        android:textColor="@color/weather_hot_city_item_added_text_color"
+        android:textColor="@color/app_section_title_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/weather_hot_city_text_left_margin"

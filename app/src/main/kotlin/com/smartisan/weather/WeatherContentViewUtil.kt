@@ -4,6 +4,10 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.Drawable
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.TextUtils
@@ -34,6 +38,7 @@ import com.smartisan.weather.bean.Weather
 import com.smartisan.weather.custom.CircleAnimButton
 import com.smartisan.weather.custom.DrawItem
 import com.smartisan.weather.custom.IndicateView
+import com.smartisan.weather.custom.NightWeatherActionDrawable
 import com.smartisan.weather.custom.SmartisanScrollView
 import com.smartisan.weather.custom.TemperatureDrawableResources
 import com.smartisan.weather.custom.VerticalRecyclerView
@@ -416,10 +421,39 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         centigradeIcon!!.setImageResource(curTheme.getcIconRes())
         fahrenheitIcon!!.setImageResource(curTheme.getfIconRes())
         mCOrFSwitchView!!.setBgRes(ctx, curTheme.getSwitchIcon(), curTheme.getSwitchIcon(), curTheme.getFrameIcon())
+        val nightMode = ThemeUtils.isNightMode(ctx)
+        circleAnimButton!!.setRefreshBackgroundDecorator(
+            if (nightMode) {
+                { source -> createNightActionDrawable(source, hasEmbeddedIcon = false) }
+            } else {
+                null
+            },
+        )
+        circleAnimButton!!.setRefreshIconFilter(
+            if (nightMode) {
+                createSourceInColorFilter(ctx.getColor(R.color.weather_action_icon_color))
+            } else {
+                null
+            },
+        )
         circleAnimButton!!.setRefreshBgRes(curTheme.getRefreshBgRes())
         circleAnimButton!!.setRefreshSrcRes(curTheme.getRefreshSrcRes())
+        addButton!!.imageTintList = null
+        addButton!!.setImageDrawable(null)
         addButton!!.setBackgroundResource(curTheme.getAddRes())
+        listButton!!.imageTintList = null
+        listButton!!.setImageDrawable(null)
         listButton!!.setBackgroundResource(curTheme.getListRes())
+        if (nightMode) {
+            addButton!!.background = createNightActionDrawable(
+                addButton!!.background.mutate(),
+                hasEmbeddedIcon = true,
+            )
+            listButton!!.background = createNightActionDrawable(
+                listButton!!.background.mutate(),
+                hasEmbeddedIcon = true,
+            )
+        }
         topBoxBg!!.setBackgroundResource(curTheme.getInfoBgRes())
         bottomGroup!!.setBackgroundResource(curTheme.getForecastBgRes())
         aqiDescView!!.setTextColor(
@@ -427,6 +461,24 @@ class WeatherContentViewUtil @JvmOverloads constructor(
         )
         aqiDescView!!.setBackgroundResource(curTheme.getTipsIcon())
     }
+
+    private fun createSourceInColorFilter(color: Int): ColorFilter =
+        PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+
+    private fun createNightActionDrawable(
+        source: Drawable,
+        hasEmbeddedIcon: Boolean,
+    ): Drawable = NightWeatherActionDrawable(
+        source = source,
+        normalSurfaceColor = ctx.getColor(R.color.weather_action_button_normal),
+        pressedSurfaceColor = ctx.getColor(R.color.weather_action_button_pressed),
+        disabledSurfaceColor = ctx.getColor(R.color.weather_action_button_disabled),
+        embeddedIconColor = if (hasEmbeddedIcon) {
+            ctx.getColor(R.color.weather_action_icon_color)
+        } else {
+            null
+        },
+    )
 
     /** 同步预警 ViewFlipper 子视图与最新预警列表，原版 `a(ArrayList, ViewFlipper)`。 */
     private fun syncAlertViews(alerts: ArrayList<AlertInfo>, flipper: ViewFlipper) {

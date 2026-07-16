@@ -8,7 +8,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#f7f7f7"
+        android:background="@color/app_surface_raised_color"
         android:gravity="center"
         android:minHeight="48dp"
         android:orientation="horizontal"
@@ -23,7 +23,7 @@
             android:gravity="center"
             android:maxLines="1"
             android:text="@string/weather_request_location_permission_tips_title"
-            android:textColor="#9a000000"
+            android:textColor="@color/app_secondary_text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -31,7 +31,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#dfdfdf" />
+        android:background="@color/app_divider_color" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -50,19 +50,19 @@
             android:paddingTop="18dp"
             android:paddingRight="18dp"
             android:paddingBottom="18dp"
-            android:textColor="#9a000000"
+            android:textColor="@color/app_secondary_text_color"
             android:textSize="13sp" />
     </ScrollView>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#dfdfdf" />
+        android:background="@color/app_divider_color" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="#f7f7f7"
+        android:background="@color/app_surface_raised_color"
         android:baselineAligned="false"
         android:divider="@drawable/dialog_line_smartisanos"
         android:gravity="center"
@@ -99,7 +99,7 @@
             android:minHeight="48dp"
             android:stateListAnimator="@null"
             android:text="@string/weather_privacy_statement_tip_agree"
-            android:textColor="#5e80d0"
+            android:textColor="@color/privacy_dialog_positive_text"
             android:textSize="13.5sp"
             android:textStyle="bold" />
     </LinearLayout>

@@ -1,15 +1,20 @@
 package com.smartisan.weather.custom
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
-import kotlin.math.min
+import androidx.core.content.ContextCompat
 import com.smartisan.weather.R
 import com.smartisan.weather.util.DebugLog
+import kotlin.math.min
 
 /**
  * 城市/页面指示器圆点 View。
@@ -45,6 +50,12 @@ class IndicateView : View {
     private var arrowSrcRect: Rect? = null
     /** 绘制目标矩形。 */
     private var dstRect: RectF = RectF()
+    /** 夜间模式下仍沿用原位图轮廓，仅替换为语义色。 */
+    private val normalPaint = createTintPaint(R.color.page_indicator_normal)
+    private val selectedPaint = createTintPaint(R.color.page_indicator_selected)
+    private val useSemanticTint =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
     /** 是否显示定位指示。 */
     private var showLocation = true
     /** 是否存在定位城市。 */
@@ -73,6 +84,15 @@ class IndicateView : View {
     }
 
     private fun decode(resId: Int) = BitmapFactory.decodeResource(resources, resId)
+
+    private fun createTintPaint(colorRes: Int) = Paint(
+        Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG,
+    ).apply {
+        colorFilter = PorterDuffColorFilter(
+            ContextCompat.getColor(context, colorRes),
+            PorterDuff.Mode.SRC_IN,
+        )
+    }
 
     /** 第 0 位且开启定位指示且存在定位城市时，绘制为箭头而非圆点。 */
     private fun isArrow(index: Int): Boolean = index == 0 && showLocation && hasLocationCity
@@ -116,7 +136,12 @@ class IndicateView : View {
                 }
             val src = if (isArrow(i)) arrowSrcRect else dotSrcRect
             if (bitmap != null && src != null) {
-                canvas.drawBitmap(bitmap, src, dstRect, null)
+                val paint = if (useSemanticTint) {
+                    if (i == currentIndex) selectedPaint else normalPaint
+                } else {
+                    null
+                }
+                canvas.drawBitmap(bitmap, src, dstRect, paint)
             }
             x = spacing * scale + right
             i++

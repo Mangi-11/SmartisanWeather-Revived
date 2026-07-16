@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:textColor="#9a000000"
+    android:textColor="@color/app_secondary_text_color"
     android:gravity="center"
     android:id="@+id/message"
     android:paddingLeft="20dp"
