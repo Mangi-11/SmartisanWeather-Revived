@@ -82,14 +82,10 @@
     <string name="weather_parnter_description">Xiaomi Weather 経由：北京天気、彩雲天気、中国環境監視総站</string>
     <string name="weather_parnter_text">北京天気、彩雲天気、CNEMC</string>
     <string name="weather_percent_symbol">%</string>
-    <string name="weather_privacy_statement_tip_agree">同意する</string>
-    <string name="weather_privacy_statement_tip_disagress">同意しない</string>
-    <string name="weather_privacy_statement_tip_message">"天気予報の基本機能を使用するには、ネットワークに接続し、デバイスのステータスを読み取る必要があります。
-また、天気サービスを提供するには、位置情報を取得する必要があります。天気アプリで使用される位置特定情報は第三者の位置特定業者によって提供されます。
-上記情報の使用に同意しない場合、位置を自動的に特定できないため、地元の天気情報を自動的に提供することができません。手動で都市を追加して地元の天気情報を取得するか、対象都市の天気を検索してください。また、「スマホ管理-対象アプリ管理』で対応する権限をオンまたはオフにし、許可を管理することができます。
-当社は Smartisan プライバシーポリシーに従って情報を収集・使用します。「同意する」をタップした場合、上記の内容、および%1$sと %2$sに同意したものとみなします。"</string>
-    <string name="weather_privacy_statement_tip_privacy_policy">Smartisan プライバシーポリシー</string>
-    <string name="weather_privacy_statement_tip_user_agreement">エンドユーザー使用許諾契約</string>
+    <string name="weather_startup_notice_title">ご利用にあたって</string>
+    <string name="weather_startup_notice_exit">終了</string>
+    <string name="weather_startup_notice_continue">続ける</string>
+    <string name="weather_startup_notice_message">本アプリは、個人開発者が<b>最新の Android 技術スタックで完全に書き直した</b>非公式のオープンソース版です。Smartisan（锤子科技）および Xiaomi との提携、認可、協力関係はなく、学習および技術交流のみを目的としています。\n\nデータは Xiaomi Weather から直接取得し、位置情報は現在地の都市を特定するためにのみ使用します。アカウント、広告、データ解析、中継サーバーはなく、すべてのデータは端末内にのみ保存されます。ソースコードは GitHub ですべて公開しています。天気情報は参考情報です。</string>
     <string name="weather_request_location_permission_tips_cancel">キャンセル</string>
     <string name="weather_request_location_permission_tips_message">位置特定による天気予報機能を使用するには、位置情報を取得する必要があります。タップして設定してください</string>
     <string name="weather_request_location_permission_tips_setting">設定</string>
@@ -151,9 +147,9 @@
     <string name="weather_widget_configure_title">ウィジェットの都市</string>
     <string name="weather_widget_configure_hint">表示する都市を固定するか、現在地の都市を優先して自動選択できます。</string>
     <string name="weather_widget_auto_city">自動選択（現在地を優先）</string>
-    <string name="weather_widget_configure_privacy">ウィジェットを追加した後、タップして初回のプライバシー設定を完了できます。</string>
+    <string name="weather_widget_configure_setup">ウィジェットを追加した後、タップして初回設定を完了できます。</string>
     <string name="weather_widget_configure_no_city">ウィジェットを追加した後、タップして都市を追加できます。</string>
-    <string name="weather_widget_setup_privacy">タップして初期設定を完了</string>
+    <string name="weather_widget_setup_required">タップして初回設定を完了</string>
     <string name="weather_widget_setup_city">タップして都市を追加</string>
     <string name="weather_widget_loading">天気を取得中…</string>
     <string name="weather_widget_weather_unavailable">天気を取得できません · タップしてアプリを開く</string>

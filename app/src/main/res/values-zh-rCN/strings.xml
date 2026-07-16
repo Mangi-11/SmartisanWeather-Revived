@@ -83,11 +83,10 @@
     <string name="weather_parnter_description">小米天气混合数据源：北京天气、彩云天气、中国环境监测总站</string>
     <string name="weather_parnter_text">北京天气、彩云天气、中国环境监测总站</string>
     <string name="weather_percent_symbol">%</string>
-    <string name="weather_privacy_statement_tip_agree">同意</string>
-    <string name="weather_privacy_statement_tip_disagress">不同意</string>
-    <string name="weather_privacy_statement_tip_message">为完成天气预报基础功能，我们需要连接网络，并读取设备状态；\n此外，为了提供天气服务，我们需要你的位置信息。天气应用所使用的定位信息由第三方定位服务商提供。\n如果你不同意我们使用上述信息，我们将无法自动获取你的定位并为你自动提供当地天气信息。你可以通过手动添加城市获取当地天气信息或查询该城市的天气。同时，你可以在“手机管理-应用程序管理”中选择开启/关闭相应权限以管理你的授权。\n我们会遵循 Smartisan 隐私政策来收集、使用你的信息。点击“同意”即表示你同意上述内容及%1$s和 %2$s。</string>
-    <string name="weather_privacy_statement_tip_privacy_policy">Smartisan 隐私政策</string>
-    <string name="weather_privacy_statement_tip_user_agreement">最终用户许可协议</string>
+    <string name="weather_startup_notice_title">使用说明</string>
+    <string name="weather_startup_notice_exit">退出</string>
+    <string name="weather_startup_notice_continue">继续使用</string>
+    <string name="weather_startup_notice_message">本应用为个人开发者<b>使用现代 Android 技术栈完全重写</b>的非官方开源版本，与 Smartisan、锤子科技及小米无任何隶属、授权或合作关系，仅供学习与技术交流使用。\n\n数据直连小米天气接口，定位仅用于匹配所在城市。应用内无账号系统、无广告、无数据统计及中转服务器；所有数据仅存留于本机，源码已在 GitHub 完全开源。天气信息仅供参考。</string>
     <string name="weather_request_location_permission_tips_cancel">取消</string>
     <string name="weather_request_location_permission_tips_message">定位城市天气预报功能需要使用位置信息，请点击去设置</string>
     <string name="weather_request_location_permission_tips_setting">去设置</string>
@@ -234,9 +233,9 @@
     <string name="weather_widget_configure_title">选择小组件城市</string>
     <string name="weather_widget_configure_hint">可以固定显示一座城市，也可以优先跟随定位城市。</string>
     <string name="weather_widget_auto_city">自动选择（优先定位城市）</string>
-    <string name="weather_widget_configure_privacy">可以先添加小组件，随后轻触它完成首次隐私设置。</string>
+    <string name="weather_widget_configure_setup">可以先添加小组件，随后轻触它完成首次设置。</string>
     <string name="weather_widget_configure_no_city">可以先添加小组件，随后轻触它添加城市。</string>
-    <string name="weather_widget_setup_privacy">轻触完成初始设置</string>
+    <string name="weather_widget_setup_required">轻触完成首次设置</string>
     <string name="weather_widget_setup_city">轻触添加城市</string>
     <string name="weather_widget_loading">正在获取天气…</string>
     <string name="weather_widget_weather_unavailable">暂时无法获取天气 · 轻触打开应用</string>

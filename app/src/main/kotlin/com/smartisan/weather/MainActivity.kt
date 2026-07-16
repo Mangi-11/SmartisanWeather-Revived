@@ -41,8 +41,8 @@ import com.smartisan.weather.ui.main.WeatherEvent
 import com.smartisan.weather.ui.main.WeatherViewModel
 import com.smartisan.weather.ui.main.toLegacyDrawItems
 import com.smartisan.weather.ui.navigation.startWeatherActivityForResult
-import com.smartisan.weather.ui.privacy.PrivacyConsentDialog
 import com.smartisan.weather.ui.search.SearchCityActivity
+import com.smartisan.weather.ui.startup.StartupNoticeDialog
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
 import com.smartisan.weather.util.enableWeatherEdgeToEdge
@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity(), AbstractController {
     private var weatherStarted = false
     private var pendingWidgetCityKey: String? = null
     private var locationRequestJob: Job? = null
-    private var privacyDialog: PrivacyConsentDialog? = null
+    private var startupNoticeDialog: StartupNoticeDialog? = null
     private val settings by lazy(LazyThreadSafetyMode.NONE) {
         WeatherSettings.getInstance(this)
     }
@@ -158,10 +158,10 @@ class MainActivity : ComponentActivity(), AbstractController {
         container.doOnLayout { ViewCompat.requestApplyInsets(it) }
 
         lifecycleScope.launch {
-            if (settings.privacyAccepted.first()) {
+            if (settings.startupNoticeAccepted.first()) {
                 startWeather()
             } else {
-                showPrivacyConsent()
+                showStartupNotice()
             }
         }
     }
@@ -186,21 +186,21 @@ class MainActivity : ComponentActivity(), AbstractController {
 
     override fun onDestroy() {
         locationRequestJob?.cancel()
-        privacyDialog?.dismiss()
-        privacyDialog = null
+        startupNoticeDialog?.dismiss()
+        startupNoticeDialog = null
         container.setOnCurrentItemChangedListener(null)
         container.setOnBackgroundChangedListener(null)
         super.onDestroy()
     }
 
-    private fun showPrivacyConsent() {
-        if (isFinishing || isDestroyed || privacyDialog?.isShowing == true) return
-        privacyDialog = PrivacyConsentDialog(this) {
+    private fun showStartupNotice() {
+        if (isFinishing || isDestroyed || startupNoticeDialog?.isShowing == true) return
+        startupNoticeDialog = StartupNoticeDialog(this) {
             lifecycleScope.launch {
-                settings.setPrivacyAccepted(true)
+                settings.setStartupNoticeAccepted(true)
                 startWeather()
             }
-        }.also(PrivacyConsentDialog::show)
+        }.also(StartupNoticeDialog::show)
     }
 
     private fun startWeather() {

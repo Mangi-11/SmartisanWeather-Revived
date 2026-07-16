@@ -43,7 +43,6 @@
     <color name="forecast_icon_tint">#c8cbd0</color>
     <color name="window_background_start">#25282d</color>
     <color name="window_background_end">#1f2226</color>
-    <color name="web_content_background">#25282d</color>
 
     <color name="color_city_added">#717377</color>
     <color name="compare_no_data_shadow_color">#66000000</color>

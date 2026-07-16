@@ -165,8 +165,8 @@ private object WeatherWidgetDisplayModelLoader {
         noCacheState: WeatherWidgetEmptyState,
     ): WeatherWidgetDisplayModel {
         val settings = WeatherSettings.getInstance(context)
-        if (!settings.privacyAccepted.first()) {
-            return empty(context, WeatherWidgetEmptyState.PRIVACY_REQUIRED)
+        if (!settings.startupNoticeAccepted.first()) {
+            return empty(context, WeatherWidgetEmptyState.SETUP_REQUIRED)
         }
 
         val cities = CityRepository(context).savedCities.first()
@@ -226,7 +226,8 @@ private object WeatherWidgetDisplayModelLoader {
         WeatherWidgetDisplayModel.Empty(
             message = context.getString(
                 when (state) {
-                    WeatherWidgetEmptyState.PRIVACY_REQUIRED -> R.string.weather_widget_setup_privacy
+                    WeatherWidgetEmptyState.SETUP_REQUIRED ->
+                        R.string.weather_widget_setup_required
                     WeatherWidgetEmptyState.CITY_REQUIRED -> R.string.weather_widget_setup_city
                     WeatherWidgetEmptyState.WEATHER_LOADING -> R.string.weather_widget_loading
                     WeatherWidgetEmptyState.WEATHER_UNAVAILABLE ->

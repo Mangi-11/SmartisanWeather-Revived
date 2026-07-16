@@ -54,13 +54,6 @@
             android:theme="@style/weather_theme" />
 
         <activity
-            android:name=".ui.license.WeatherLicenseActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/weather_theme"
-            android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
-
-        <activity
             android:name=".appwidget.WeatherWidgetConfigureActivity"
             android:excludeFromRecents="true"
             android:exported="true"

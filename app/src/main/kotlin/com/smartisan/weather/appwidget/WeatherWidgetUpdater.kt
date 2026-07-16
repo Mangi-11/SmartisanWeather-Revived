@@ -119,7 +119,7 @@ internal object WeatherWidgetUpdater {
 
     private suspend fun resolveTargets(context: Context, ids: IntArray): ResolvedTargets {
         val settings = WeatherSettings.getInstance(context)
-        if (!settings.privacyAccepted.first()) return ResolvedTargets.Empty
+        if (!settings.startupNoticeAccepted.first()) return ResolvedTargets.Empty
 
         val cities = CityRepository(context).savedCities.first()
         if (cities.isEmpty()) return ResolvedTargets.Empty

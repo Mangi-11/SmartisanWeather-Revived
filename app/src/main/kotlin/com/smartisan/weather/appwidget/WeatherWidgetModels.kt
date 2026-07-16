@@ -28,7 +28,7 @@ internal enum class WeatherWidgetUpdateState {
 }
 
 internal enum class WeatherWidgetEmptyState {
-    PRIVACY_REQUIRED,
+    SETUP_REQUIRED,
     CITY_REQUIRED,
     WEATHER_LOADING,
     WEATHER_UNAVAILABLE,

@@ -85,30 +85,30 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
         doneButton.isEnabled = false
         lifecycleScope.launch {
             val settings = WeatherSettings.getInstance(this@WeatherWidgetConfigureActivity)
-            val privacyAccepted = settings.privacyAccepted.first()
-            val cities = if (privacyAccepted) {
+            val setupComplete = settings.startupNoticeAccepted.first()
+            val cities = if (setupComplete) {
                 CityRepository(this@WeatherWidgetConfigureActivity).savedCities.first()
             } else {
                 emptyList()
             }
             selectedCityKey = settings.readWidgetCitySelections(intArrayOf(appWidgetId))[appWidgetId]
                 ?: AUTO_CITY_SELECTION
-            canRefresh = privacyAccepted && cities.isNotEmpty()
-            renderOptions(privacyAccepted, cities)
+            canRefresh = setupComplete && cities.isNotEmpty()
+            renderOptions(setupComplete, cities)
             doneButton.isEnabled = true
         }
     }
 
-    private fun renderOptions(privacyAccepted: Boolean, cities: List<SavedCity>) {
-        if (!privacyAccepted || cities.isEmpty()) {
+    private fun renderOptions(setupComplete: Boolean, cities: List<SavedCity>) {
+        if (!setupComplete || cities.isEmpty()) {
             cityList.visibility = View.GONE
             hint.visibility = View.GONE
             message.visibility = View.VISIBLE
             message.setText(
-                if (privacyAccepted) {
+                if (setupComplete) {
                     R.string.weather_widget_configure_no_city
                 } else {
-                    R.string.weather_widget_configure_privacy
+                    R.string.weather_widget_configure_setup
                 },
             )
             selectedCityKey = AUTO_CITY_SELECTION

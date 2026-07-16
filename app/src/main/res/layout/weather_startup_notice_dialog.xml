@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/privacy_dialog_root"
+    android:id="@+id/startup_notice_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -16,13 +16,13 @@
         android:paddingRight="16dp">
 
         <TextView
-            android:id="@+id/privacy_dialog_title"
+            android:id="@+id/startup_notice_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
-            android:text="@string/weather_request_location_permission_tips_title"
+            android:text="@string/weather_startup_notice_title"
             android:textColor="@color/app_secondary_text_color"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -40,7 +40,7 @@
         android:fillViewport="true">
 
         <TextView
-            android:id="@+id/privacy_dialog_message"
+            android:id="@+id/startup_notice_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="start|center_vertical"
@@ -70,7 +70,7 @@
         android:showDividers="middle">
 
         <Button
-            android:id="@+id/privacy_dialog_negative"
+            android:id="@+id/startup_notice_exit"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -81,13 +81,13 @@
             android:maxLines="2"
             android:minHeight="48dp"
             android:stateListAnimator="@null"
-            android:text="@string/weather_privacy_statement_tip_disagress"
+            android:text="@string/weather_startup_notice_exit"
             android:textColor="@color/privacy_dialog_negative_text"
             android:textSize="13.5sp"
             android:textStyle="bold" />
 
         <Button
-            android:id="@+id/privacy_dialog_positive"
+            android:id="@+id/startup_notice_continue"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -98,7 +98,7 @@
             android:maxLines="2"
             android:minHeight="48dp"
             android:stateListAnimator="@null"
-            android:text="@string/weather_privacy_statement_tip_agree"
+            android:text="@string/weather_startup_notice_continue"
             android:textColor="@color/privacy_dialog_positive_text"
             android:textSize="13.5sp"
             android:textStyle="bold" />

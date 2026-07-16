@@ -89,11 +89,10 @@
     <string name="weather_parnter_description">Weather data from Beijing Weather, Caiyun Weather, and CNEMC via Xiaomi Weather</string>
     <string name="weather_parnter_text">Beijing Weather, Caiyun, CNEMC</string>
     <string name="weather_percent_symbol">%</string>
-    <string name="weather_privacy_statement_tip_agree">I Agree</string>
-    <string name="weather_privacy_statement_tip_disagress">I Disagree</string>
-    <string name="weather_privacy_statement_tip_message">Network connection and device status are required for Weather to work; \n In addition, you need to turn on location services to allow Weather to determine your location. The location information used by the weather app is provided by a third-party location service provider. \n Not allowing access to the above information will result in us failing to automatically obtain your location and provide you with local weather information. You can manually add a city to get local weather information or search the city\'s weather. Also, you can manage app permissions at Mobile Management - App Management by selecting on or off. \n We will collect and use your information in accordance with Smartisan\'s Privacy Policy. Click I Agree to indicate that you agree with the above content, %1$s and %2$s.</string>
-    <string name="weather_privacy_statement_tip_privacy_policy">Smartisan Privacy Policy</string>
-    <string name="weather_privacy_statement_tip_user_agreement">End-User License Agreement</string>
+    <string name="weather_startup_notice_title">Usage Notice</string>
+    <string name="weather_startup_notice_exit">Exit</string>
+    <string name="weather_startup_notice_continue">Continue</string>
+    <string name="weather_startup_notice_message">This is an unofficial open-source version <b>completely rewritten by an individual developer with a modern Android technology stack</b>. It has no affiliation, authorization, or partnership with Smartisan, Hammer Technology, or Xiaomi and is intended solely for learning and technical exchange.\n\nData is retrieved directly from Xiaomi Weather, and location is used only to match your city. The app has no account system, ads, analytics, or relay server. All data remains on your device, and the complete source code is open on GitHub. Weather information is for reference only.</string>
     <string name="weather_request_location_permission_tips_cancel">Cancel</string>
     <string name="weather_request_location_permission_tips_message">Turn on location services to allow “Weather” to determine your location, click to go to settings</string>
     <string name="weather_request_location_permission_tips_setting">Go to settings</string>
@@ -249,9 +248,9 @@
     <string name="weather_widget_configure_title">Widget city</string>
     <string name="weather_widget_configure_hint">Choose a fixed city, or let the widget prefer your location city.</string>
     <string name="weather_widget_auto_city">Automatic (prefer location)</string>
-    <string name="weather_widget_configure_privacy">Add the widget now, then tap it to complete the initial privacy setup.</string>
+    <string name="weather_widget_configure_setup">Add the widget now, then tap it to complete the initial setup.</string>
     <string name="weather_widget_configure_no_city">Add the widget now, then tap it to add a city.</string>
-    <string name="weather_widget_setup_privacy">Tap to finish setup</string>
+    <string name="weather_widget_setup_required">Tap to finish initial setup</string>
     <string name="weather_widget_setup_city">Tap to add a city</string>
     <string name="weather_widget_loading">Getting weather…</string>
     <string name="weather_widget_weather_unavailable">Weather unavailable · tap to open app</string>

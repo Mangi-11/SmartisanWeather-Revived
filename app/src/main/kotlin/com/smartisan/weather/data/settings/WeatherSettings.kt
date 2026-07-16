@@ -48,8 +48,8 @@ class WeatherSettings private constructor(context: Context) {
 
     val isCelsius: Flow<Boolean> = tempUnit.map { it == UNIT_CELSIUS }
 
-    val privacyAccepted: Flow<Boolean> = preferences
-        .map { it[KEY_PRIVACY_ACCEPTED] ?: false }
+    val startupNoticeAccepted: Flow<Boolean> = preferences
+        .map { it[KEY_STARTUP_NOTICE_ACCEPTED] ?: false }
 
     suspend fun setTempUnit(unit: Int) {
         require(unit == UNIT_CELSIUS || unit == UNIT_FAHRENHEIT)
@@ -61,8 +61,8 @@ class WeatherSettings private constructor(context: Context) {
         scope.launch { setTempUnit(unit) }
     }
 
-    suspend fun setPrivacyAccepted(accepted: Boolean) {
-        appContext.weatherDataStore.edit { it[KEY_PRIVACY_ACCEPTED] = accepted }
+    suspend fun setStartupNoticeAccepted(accepted: Boolean) {
+        appContext.weatherDataStore.edit { it[KEY_STARTUP_NOTICE_ACCEPTED] = accepted }
         WeatherWidgetUpdateNotifier.notifyDataChanged(
             context = appContext,
             requestRefresh = accepted,
@@ -112,7 +112,8 @@ class WeatherSettings private constructor(context: Context) {
 
     companion object {
         val KEY_TEMP_UNIT = intPreferencesKey("temp_unit")
-        private val KEY_PRIVACY_ACCEPTED = booleanPreferencesKey("privacy_accepted")
+        // Keep the persisted key stable so existing development installs are not prompted again.
+        private val KEY_STARTUP_NOTICE_ACCEPTED = booleanPreferencesKey("privacy_accepted")
         const val UNIT_CELSIUS = 1
         const val UNIT_FAHRENHEIT = 2
         private const val WIDGET_CITY_KEY_PREFIX = "weather_widget_city_"
