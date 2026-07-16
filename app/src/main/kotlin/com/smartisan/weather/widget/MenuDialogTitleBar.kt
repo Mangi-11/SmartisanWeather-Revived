@@ -1,6 +1,8 @@
 package com.smartisan.weather.widget
 
 import android.content.Context
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +11,9 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.smartisan.weather.R
+import com.smartisan.weather.util.ThemeUtils
 
 class MenuDialogTitleBar @JvmOverloads constructor(
     context: Context,
@@ -32,6 +36,18 @@ class MenuDialogTitleBar @JvmOverloads constructor(
         leftImageView = findViewById(R.id.btn_cancel_left)
         rightImageView = findViewById(R.id.btn_cancel_right)
         titleBarContainer = findViewById(R.id.menu_dialog_title_bar_container)
+
+        if (ThemeUtils.isNightMode(context)) {
+            /*
+             * Preserve the original Smartisan NinePatch geometry, edge shading and
+             * corner radius. Night mode changes only its palette.
+             */
+            titleBarContainer.background?.mutate()?.colorFilter =
+                PorterDuffColorFilter(
+                    ContextCompat.getColor(context, R.color.app_surface_raised_color),
+                    PorterDuff.Mode.MULTIPLY,
+                )
+        }
 
         leftImageView.setOnClickListener { view ->
             leftClickListener?.onClick(view)

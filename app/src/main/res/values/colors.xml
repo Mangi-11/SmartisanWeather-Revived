@@ -47,6 +47,7 @@
     <color name="color_city_added">#62000000</color>
     <color name="compare_no_data_shadow_color">#19000000</color>
     <color name="divider_listview">#e5e5e6</color>
+    <color name="menu_dialog_divider_color">#e5e5e6</color>
     <color name="highlight_text_color">#e65c53</color>
     <color name="item_pager_content_forcast_hour_item_view_text_color">#4c000000</color>
     <color name="item_pager_content_text_color">#9a000000</color>

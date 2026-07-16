@@ -1,52 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/menu_dialog_root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <com.smartisan.weather.widget.MenuDialogTitleBar
-        android:id="@+id/menu_dialog_title_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-    <View
-        android:background="@color/divider_listview"
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"/>
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
     <LinearLayout
-        android:orientation="vertical"
-        android:id="@+id/contentPanel"
-        android:background="@color/app_dialog_surface_color"
+        android:id="@+id/menu_dialog_panel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ListView
-            android:scrollbarStyle="outsideOverlay"
-            android:id="@+id/content_list"
-            android:paddingLeft="@dimen/menu_dialog_horizontal_distance"
-            android:paddingTop="24dp"
-            android:paddingRight="@dimen/menu_dialog_horizontal_distance"
-            android:paddingBottom="24dp"
-            android:visibility="gone"
-            android:scrollbars="vertical"
-            android:clipChildren="false"
-            android:clipToPadding="false"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical">
+
+        <com.smartisan.weather.widget.MenuDialogTitleBar
+            android:id="@+id/menu_dialog_title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/menu_dialog_divider_color" />
+
+        <LinearLayout
+            android:id="@+id/contentPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:listSelector="@android:color/transparent"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="18dp"
-            android:overScrollMode="never"/>
-        <com.smartisan.weather.widget.ShadowButton
-            android:textSize="13.5sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:id="@+id/btn_ok"
-            android:background="@drawable/shrink_long_btn_red_selector"
-            android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginLeft="@dimen/menu_dialog_horizontal_distance"
-            android:layout_marginTop="24dp"
-            android:layout_marginRight="@dimen/menu_dialog_horizontal_distance"
-            android:layout_marginBottom="24dp"
-            android:singleLine="true"/>
+            android:background="@color/app_dialog_surface_color"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/content_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="18dp"
+                android:listSelector="@android:color/transparent"
+                android:overScrollMode="never"
+                android:paddingLeft="@dimen/menu_dialog_horizontal_distance"
+                android:paddingTop="24dp"
+                android:paddingRight="@dimen/menu_dialog_horizontal_distance"
+                android:paddingBottom="24dp"
+                android:scrollbarStyle="outsideOverlay"
+                android:scrollbars="vertical"
+                android:visibility="gone" />
+
+            <com.smartisan.weather.widget.ShadowButton
+                android:id="@+id/btn_ok"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginLeft="@dimen/menu_dialog_horizontal_distance"
+                android:layout_marginTop="24dp"
+                android:layout_marginRight="@dimen/menu_dialog_horizontal_distance"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/shrink_long_btn_red_selector"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="13.5sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

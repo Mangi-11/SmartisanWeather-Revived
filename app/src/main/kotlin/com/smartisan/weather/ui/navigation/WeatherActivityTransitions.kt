@@ -4,12 +4,11 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import com.smartisan.weather.R
 
 /** 原版天气页面的上推进入、下滑退出转场。 */
-abstract class WeatherTransitionActivity : ComponentActivity() {
+abstract class WeatherTransitionActivity : WeatherEdgeToEdgeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

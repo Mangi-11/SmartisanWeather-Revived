@@ -41,7 +41,6 @@ import com.smartisan.weather.data.model.SearchResultCity
 import com.smartisan.weather.ui.navigation.WeatherTransitionActivity
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
-import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.SearchBar
 import kotlinx.coroutines.launch
@@ -95,7 +94,6 @@ class SearchCityActivity : WeatherTransitionActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requireCity = intent.getBooleanExtra(EXTRA_REQUIRE_CITY, false)
-        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_search_city_layout)
 
         bindViews()

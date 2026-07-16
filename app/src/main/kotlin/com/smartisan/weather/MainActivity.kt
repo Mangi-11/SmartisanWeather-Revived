@@ -17,7 +17,6 @@ import android.provider.Settings
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -41,12 +40,12 @@ import com.smartisan.weather.ui.main.WeatherEvent
 import com.smartisan.weather.ui.main.WeatherViewModel
 import com.smartisan.weather.ui.main.toLegacyDrawItem
 import com.smartisan.weather.ui.main.toLegacyDrawItems
+import com.smartisan.weather.ui.navigation.WeatherEdgeToEdgeActivity
 import com.smartisan.weather.ui.navigation.startWeatherActivityForResult
 import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.ui.startup.StartupNoticeDialog
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
-import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
@@ -61,7 +60,7 @@ import kotlin.coroutines.resume
  * UI 直接使用原版 XML 和自定义 View；现代 Android 层只负责生命周期、Insets 和把
  * [WeatherViewModel] 的不可变状态增量同步给 [WeatherGroupContainer]。
  */
-class MainActivity : ComponentActivity(), AbstractController {
+class MainActivity : WeatherEdgeToEdgeActivity(), AbstractController {
 
     private val viewModel by viewModels<WeatherViewModel>()
 
@@ -127,7 +126,6 @@ class MainActivity : ComponentActivity(), AbstractController {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_main)
         pendingWidgetCityKey = intent.getStringExtra(WeatherWidgetProvider.EXTRA_CITY_KEY)
 

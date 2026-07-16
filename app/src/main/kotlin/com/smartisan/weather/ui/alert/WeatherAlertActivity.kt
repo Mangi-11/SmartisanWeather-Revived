@@ -1,7 +1,6 @@
 package com.smartisan.weather.ui.alert
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
@@ -10,13 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.smartisan.weather.R
 import com.smartisan.weather.data.model.WeatherAlert
+import com.smartisan.weather.ui.navigation.WeatherEdgeToEdgeActivity
 import com.smartisan.weather.util.centeredPhoneContentInsets
-import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.TitleBar
 
 /** 原版锤子天气风格的预警详情页。 */
-class WeatherAlertActivity : ComponentActivity() {
+class WeatherAlertActivity : WeatherEdgeToEdgeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +23,6 @@ class WeatherAlertActivity : ComponentActivity() {
             finish()
             return
         }
-        enableWeatherEdgeToEdge()
         setContentView(R.layout.weather_alert_layout)
 
         val root = findViewById<android.view.View>(R.id.calendars)

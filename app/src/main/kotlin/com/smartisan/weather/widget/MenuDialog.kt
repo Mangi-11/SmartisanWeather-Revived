@@ -7,27 +7,41 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.AdapterView
+import android.widget.FrameLayout
 import android.widget.ListAdapter
 import android.widget.ListView
 import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import com.smartisan.weather.R
+import com.smartisan.weather.util.enableWeatherEdgeToEdge
 
 class MenuDialog @JvmOverloads constructor(
     context: Context,
     private val location: Int = LOCATION_APP_BOTTOM,
 ) : Dialog(context, R.style.MenuDialogTheme) {
 
+    private val rootView: View
+    private val dialogPanel: View
     private val titleBar: MenuDialogTitleBar
     private val okButton: ShadowButton
     private val listView: ListView
+    private val contentPanel: View
+    private val contentPanelBasePaddingBottom: Int
     private val marginView: Int
     private val marginEdge: Int
 
     init {
         setContentView(R.layout.menu_dialog)
+        rootView = findViewById(R.id.menu_dialog_root)
+        dialogPanel = findViewById(R.id.menu_dialog_panel)
         titleBar = findViewById(R.id.menu_dialog_title_bar)
         okButton = findViewById(R.id.btn_ok)
         listView = findViewById(R.id.content_list)
+        contentPanel = findViewById(R.id.contentPanel)
+        contentPanelBasePaddingBottom = contentPanel.paddingBottom
         marginView = context.resources.getDimensionPixelOffset(R.dimen.menu_dialog_btn_margin_view)
         marginEdge = context.resources.getDimensionPixelOffset(R.dimen.menu_dialog_btn_margin_edge)
 
@@ -42,13 +56,16 @@ class MenuDialog @JvmOverloads constructor(
         titleBar.setLeftButtonVisibility(View.INVISIBLE)
         titleBar.setRightButtonVisibility(View.VISIBLE)
         listView.isFocusable = false
-        locateDialog(location)
+        applyNavigationBarInsets()
+        rootView.setOnClickListener { cancel() }
         setCanceledOnTouchOutside(true)
     }
 
-    override fun show() {
-        super.show()
+    override fun onStart() {
+        super.onStart()
+        window?.enableWeatherEdgeToEdge(context)
         locateDialog(location)
+        ViewCompat.requestApplyInsets(rootView)
     }
 
     override fun setTitle(titleId: Int) {
@@ -132,26 +149,41 @@ class MenuDialog @JvmOverloads constructor(
         super.setOnCancelListener(listener)
     }
 
+    private fun applyNavigationBarInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
+            val navigationBarBottom = if (location == LOCATION_APP_BOTTOM) {
+                insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            } else {
+                0
+            }
+            contentPanel.updatePadding(
+                bottom = contentPanelBasePaddingBottom + navigationBarBottom,
+            )
+            insets
+        }
+    }
+
     private fun locateDialog(dialogLocation: Int) {
+        val panelGravity = if (dialogLocation == LOCATION_APP_BOTTOM) {
+            Gravity.BOTTOM
+        } else {
+            Gravity.CENTER
+        }
+        dialogPanel.updateLayoutParams<FrameLayout.LayoutParams> {
+            gravity = panelGravity
+            width = if (dialogLocation == LOCATION_APP_BOTTOM) {
+                WindowManager.LayoutParams.MATCH_PARENT
+            } else {
+                WindowManager.LayoutParams.WRAP_CONTENT
+            }
+        }
         window?.apply {
             setBackgroundDrawableResource(android.R.color.transparent)
-            val gravity = if (dialogLocation == LOCATION_APP_BOTTOM) {
-                Gravity.BOTTOM
-            } else {
-                Gravity.CENTER
-            }
-            setGravity(gravity)
-            if (gravity == Gravity.BOTTOM) {
-                setLayout(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                )
-            } else {
-                setLayout(
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                )
-            }
+            setGravity(Gravity.FILL)
+            setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+            )
         }
     }
 

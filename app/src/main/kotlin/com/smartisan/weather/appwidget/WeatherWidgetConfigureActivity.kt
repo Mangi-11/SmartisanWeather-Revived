@@ -9,24 +9,24 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.smartisan.weather.R
 import com.smartisan.weather.data.city.CityRepository
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.settings.WeatherSettings
+import com.smartisan.weather.ui.navigation.WeatherEdgeToEdgeActivity
 import com.smartisan.weather.util.centeredPhoneContentInsets
-import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.ShadowButton
 import com.smartisan.weather.widget.TitleBar
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class WeatherWidgetConfigureActivity : ComponentActivity() {
+class WeatherWidgetConfigureActivity : WeatherEdgeToEdgeActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private var selectedCityKey = AUTO_CITY_SELECTION
     private var canRefresh = false
@@ -57,7 +57,6 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
             return
         }
 
-        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_weather_widget_configure)
         cityList = findViewById(R.id.widget_configure_city_list)
         message = findViewById(R.id.widget_configure_message)
@@ -177,15 +176,20 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
     private fun applyInsets(root: View) {
         val basePaddingLeft = root.paddingLeft
         val basePaddingRight = root.paddingRight
-        val basePaddingBottom = root.paddingBottom
+        val actions = findViewById<View>(R.id.widget_configure_actions)
+        val baseActionsHeight = actions.layoutParams.height
+        val baseActionsPaddingBottom = actions.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.safeDrawingInsets()
             val horizontal = view.centeredPhoneContentInsets(bars)
             view.updatePadding(
                 left = basePaddingLeft + horizontal.left,
                 right = basePaddingRight + horizontal.right,
-                bottom = basePaddingBottom + bars.bottom,
             )
+            actions.updateLayoutParams {
+                height = baseActionsHeight + bars.bottom
+            }
+            actions.updatePadding(bottom = baseActionsPaddingBottom + bars.bottom)
             insets
         }
         ViewCompat.requestApplyInsets(root)

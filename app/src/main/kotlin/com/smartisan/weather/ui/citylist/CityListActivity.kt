@@ -30,7 +30,6 @@ import com.smartisan.weather.ui.navigation.startWeatherActivityForResult
 import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.util.Constants
 import com.smartisan.weather.util.centeredPhoneContentInsets
-import com.smartisan.weather.util.enableWeatherEdgeToEdge
 import com.smartisan.weather.util.safeDrawingInsets
 import com.smartisan.weather.widget.MenuDialog
 import com.smartisan.weather.widget.TitleBar
@@ -65,7 +64,6 @@ class CityListActivity : WeatherTransitionActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_city_list)
 
         setupTitleBar()

@@ -1,21 +1,29 @@
 package com.smartisan.weather.util
 
-import android.graphics.Color
-import android.os.Build
+import android.content.Context
+import android.view.Window
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.core.graphics.Insets
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 
-/** Applies the app-wide transparent system-bar policy on every Activity. */
+/** Applies the app-wide edge-to-edge policy to an Activity window. */
 fun ComponentActivity.enableWeatherEdgeToEdge() {
-    enableEdgeToEdge(
-        statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
-        navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
-    )
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        window.isNavigationBarContrastEnforced = false
+    window.enableWeatherEdgeToEdge(this)
+}
+
+/**
+ * Makes any app-owned window draw behind both system bars.
+ *
+ * Background surfaces are responsible for filling the system-bar areas, while
+ * interactive content applies [WindowInsetsCompat] separately.
+ */
+fun Window.enableWeatherEdgeToEdge(context: Context) {
+    WindowCompat.enableEdgeToEdge(this)
+    WindowCompat.getInsetsController(this, decorView).apply {
+        val useDarkIcons = !ThemeUtils.isNightMode(context)
+        isAppearanceLightStatusBars = useDarkIcons
+        isAppearanceLightNavigationBars = useDarkIcons
     }
 }
 
