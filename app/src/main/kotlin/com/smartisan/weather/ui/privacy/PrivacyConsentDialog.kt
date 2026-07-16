@@ -3,6 +3,8 @@ package com.smartisan.weather.ui.privacy
 import android.app.Activity
 import android.app.Dialog
 import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -18,6 +20,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.smartisan.weather.R
 import com.smartisan.weather.ui.license.WeatherLicenseActivity
+import com.smartisan.weather.util.ThemeUtils
 
 /** 原版首次启动隐私提示；协议链接继续使用 APK 内置的离线 HTML。 */
 class PrivacyConsentDialog(
@@ -58,8 +61,20 @@ class PrivacyConsentDialog(
             onAgree()
         }
 
+        val originalDialogBackground =
+            ContextCompat.getDrawable(
+                activity,
+                R.drawable.dialog_full_smartisanos_light,
+            )?.mutate()?.apply {
+                if (ThemeUtils.isNightMode(activity)) {
+                    colorFilter = PorterDuffColorFilter(
+                        ContextCompat.getColor(activity, R.color.app_surface_color),
+                        PorterDuff.Mode.MULTIPLY,
+                    )
+                }
+            }
         window?.apply {
-            setBackgroundDrawableResource(R.drawable.dialog_full_smartisanos_light)
+            setBackgroundDrawable(originalDialogBackground)
             setGravity(Gravity.CENTER)
             setDimAmount(0.5f)
             addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
