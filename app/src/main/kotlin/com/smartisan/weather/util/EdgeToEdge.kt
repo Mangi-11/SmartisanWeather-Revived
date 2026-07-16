@@ -1,6 +1,7 @@
 package com.smartisan.weather.util
 
 import android.content.Context
+import android.os.Build
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.core.graphics.Insets
@@ -20,6 +21,9 @@ fun ComponentActivity.enableWeatherEdgeToEdge() {
  */
 fun Window.enableWeatherEdgeToEdge(context: Context) {
     WindowCompat.enableEdgeToEdge(this)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        isNavigationBarContrastEnforced = false
+    }
     WindowCompat.getInsetsController(this, decorView).apply {
         val useDarkIcons = !ThemeUtils.isNightMode(context)
         isAppearanceLightStatusBars = useDarkIcons

@@ -13,7 +13,6 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
         <item name="android:colorAccent">@color/app_accent_color</item>
     </style>
 
@@ -25,7 +24,6 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
         <item name="android:colorAccent">@color/app_accent_color</item>
     </style>
 
@@ -44,7 +42,6 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.InputMethod</item>
         <item name="android:background">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
