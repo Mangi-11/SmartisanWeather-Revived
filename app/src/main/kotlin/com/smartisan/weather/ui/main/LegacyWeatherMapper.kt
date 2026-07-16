@@ -19,12 +19,13 @@ import java.util.Locale
 
 /** Converts the immutable data-layer state into the mutable model used by the original Views. */
 internal fun WeatherUiState.toLegacyDrawItems(): ArrayList<DrawItem> =
-    cities.mapTo(ArrayList(cities.size)) { city ->
-        DrawItem(
-            weathers[city.locationKey]?.toLegacyWeather(city.locationKey),
-            city.toLegacyLocation(),
-        )
-    }
+    cities.mapTo(ArrayList(cities.size)) { city -> toLegacyDrawItem(city) }
+
+/** Converts only one city when an incremental state update does not change the page structure. */
+internal fun WeatherUiState.toLegacyDrawItem(city: SavedCity): DrawItem = DrawItem(
+    weathers[city.locationKey]?.toLegacyWeather(city.locationKey),
+    city.toLegacyLocation(),
+)
 
 /** Converts a saved Room city into the location object expected by the original View layer. */
 internal fun SavedCity.toLegacyLocation(): SmartisanLocation = SmartisanLocation().also { location ->

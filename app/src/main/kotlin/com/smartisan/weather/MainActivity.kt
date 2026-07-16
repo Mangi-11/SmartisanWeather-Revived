@@ -39,6 +39,7 @@ import com.smartisan.weather.ui.citylist.CityListActivity
 import com.smartisan.weather.ui.main.WeatherUiState
 import com.smartisan.weather.ui.main.WeatherEvent
 import com.smartisan.weather.ui.main.WeatherViewModel
+import com.smartisan.weather.ui.main.toLegacyDrawItem
 import com.smartisan.weather.ui.main.toLegacyDrawItems
 import com.smartisan.weather.ui.navigation.startWeatherActivityForResult
 import com.smartisan.weather.ui.search.SearchCityActivity
@@ -227,7 +228,7 @@ class MainActivity : ComponentActivity(), AbstractController {
                                 viewModel.uiState.value.cities.forEach { city ->
                                     container.setLoadType(city.locationKey, 1)
                                 }
-                                viewModel.refreshAllCities()
+                                viewModel.refreshAllCities(forceRefresh = true)
                             }
                         }
                         previousOnline = online
@@ -291,10 +292,10 @@ class MainActivity : ComponentActivity(), AbstractController {
 
     private fun render(state: WeatherUiState) {
         val previous = renderedState
-        val items = state.toLegacyDrawItems()
         val structureChanged = previous == null || previous.cities != state.cities
 
         if (structureChanged) {
+            val items = state.toLegacyDrawItems()
             val currentKey = container.getCurrentCityId()
             container.initDatas(items)
             if (items.isNotEmpty()) {
@@ -305,7 +306,7 @@ class MainActivity : ComponentActivity(), AbstractController {
                 container.setCurrentItem(targetIndex)
             }
         } else {
-            state.cities.forEachIndexed { index, city ->
+            state.cities.forEach { city ->
                 val oldWeather = previous.weathers[city.locationKey]
                 val newWeather = state.weathers[city.locationKey]
                 val loadCompleted = previous.loadVersions[city.locationKey] !=
@@ -316,7 +317,7 @@ class MainActivity : ComponentActivity(), AbstractController {
                     container.replaceData(
                         success = succeeded,
                         locationKey = city.locationKey,
-                        drawItem = items[index].takeIf { succeeded },
+                        drawItem = if (succeeded) state.toLegacyDrawItem(city) else null,
                     )
                 }
             }
@@ -395,7 +396,7 @@ class MainActivity : ComponentActivity(), AbstractController {
         } else if (city.isLocationCity) {
             startLocationFlow()
         } else {
-            viewModel.loadWeather(city.locationKey)
+            viewModel.refreshCurrentCity()
         }
     }
 

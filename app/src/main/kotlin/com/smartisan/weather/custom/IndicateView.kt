@@ -24,7 +24,11 @@ import kotlin.math.min
  *
  * 定位城市是否存在由主页面已有状态直接注入，绘制路径不访问数据库。
  */
-class IndicateView : View {
+class IndicateView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : View(context, attrs, defStyleAttr) {
 
     /** 圆点总数（页面数）。 */
     private var totalCount = 0
@@ -37,13 +41,13 @@ class IndicateView : View {
     /** 圆点间距。 */
     private var spacing = 10
     /** 高亮圆点。 */
-    private var highlightBitmap = decode(R.drawable.dot_highlight)
+    private val highlightBitmap = decode(R.drawable.dot_highlight)
     /** 灰色圆点。 */
-    private var greyBitmap = decode(R.drawable.dot_grey)
+    private val greyBitmap = decode(R.drawable.dot_grey)
     /** 选中箭头。 */
-    private var arrowSelectedBitmap = decode(R.drawable.weather_arrow_seleted)
+    private val arrowSelectedBitmap = decode(R.drawable.weather_arrow_seleted)
     /** 普通箭头。 */
-    private var arrowNormalBitmap = decode(R.drawable.weather_arrow_normal)
+    private val arrowNormalBitmap = decode(R.drawable.weather_arrow_normal)
     /** 圆点源矩形。 */
     private var dotSrcRect: Rect? = null
     /** 箭头源矩形。 */
@@ -61,16 +65,7 @@ class IndicateView : View {
     /** 是否存在定位城市。 */
     private var hasLocationCity = false
 
-    constructor(context: Context) : this(context, null)
-
-    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
-
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
-            super(context, attrs, defStyleAttr) {
-        highlightBitmap = decode(R.drawable.dot_highlight)
-        greyBitmap = decode(R.drawable.dot_grey)
-        arrowSelectedBitmap = decode(R.drawable.weather_arrow_seleted)
-        arrowNormalBitmap = decode(R.drawable.weather_arrow_normal)
+    init {
         val f = highlightBitmap
         val h = arrowSelectedBitmap
         if (f != null && h != null) {

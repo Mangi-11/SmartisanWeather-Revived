@@ -58,6 +58,17 @@ sealed interface WeatherEvent {
     data class LocationFailed(@param:StringRes val message: Int) : WeatherEvent
 }
 
+internal const val AUTOMATIC_WEATHER_REFRESH_INTERVAL_MILLIS = 10L * 60L * 1_000L
+
+internal fun shouldRefreshWeatherCache(
+    updatedAtMillis: Long,
+    nowMillis: Long = System.currentTimeMillis(),
+): Boolean {
+    if (updatedAtMillis <= 0L) return true
+    val ageMillis = nowMillis - updatedAtMillis
+    return ageMillis !in 0L until AUTOMATIC_WEATHER_REFRESH_INTERVAL_MILLIS
+}
+
 /**
  * 主界面 ViewModel。
  */
@@ -73,6 +84,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val eventChannel = Channel<WeatherEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
     private val loadJobs = mutableMapOf<String, Job>()
+    private val pendingForceRefreshKeys = mutableSetOf<String>()
     private var locationJob: Job? = null
     private var pendingFocusKey: String? = null
 
@@ -84,6 +96,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 loadJobs.keys.filterNot(cityKeys::contains).forEach { key ->
                     loadJobs.remove(key)?.cancel()
                 }
+                pendingForceRefreshKeys.retainAll(cityKeys)
                 _uiState.update { state ->
                     val currentKey = state.currentCity?.locationKey
                     val preservedIndex = cities.indexOfFirst { it.locationKey == currentKey }
@@ -123,10 +136,16 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** 加载天气数据（先读缓存再刷新） */
-    fun loadWeather(cityKey: String) {
-        if (cityKey.isBlank() || loadJobs[cityKey]?.isActive == true) return
+    /** 加载天气数据；自动加载复用短时间内的新鲜缓存，用户刷新始终请求网络。 */
+    fun loadWeather(cityKey: String, forceRefresh: Boolean = false) {
+        if (cityKey.isBlank()) return
+        if (loadJobs[cityKey]?.isActive == true) {
+            if (forceRefresh) pendingForceRefreshKeys += cityKey
+            return
+        }
         loadJobs[cityKey] = viewModelScope.launch {
+            val initialState = _uiState.value
+            var notifyLoadCompletion = initialState.errorsByKey.containsKey(cityKey)
             _uiState.update { state ->
                 state.copy(
                     loadingKeys = state.loadingKeys + cityKey,
@@ -134,23 +153,33 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
             var failure: String? = null
+            var networkRefreshSucceeded = false
             try {
-                val cached = weatherRepo.getCachedWeather(cityKey)
-                if (cached != null) {
+                val snapshot = weatherRepo.getCachedWeatherSnapshot(cityKey)
+                if (snapshot != null) {
                     _uiState.update { state ->
                         if (state.cities.none { it.locationKey == cityKey }) state
-                        else state.copy(weathers = state.weathers + (cityKey to cached))
+                        else state.copy(weathers = state.weathers + (cityKey to snapshot.weather))
                     }
                 }
 
-                val weather = weatherRepo.fetchWeather(cityKey)
-                if (weather != null && weather.isComplete) {
-                    _uiState.update { state ->
-                        if (state.cities.none { it.locationKey == cityKey }) state
-                        else state.copy(weathers = state.weathers + (cityKey to weather))
+                val cacheIsFresh = snapshot?.let { cached ->
+                    cached.weather.isComplete &&
+                        !shouldRefreshWeatherCache(cached.updatedAtMillis)
+                } == true
+                val shouldFetch = forceRefresh || !cacheIsFresh
+                notifyLoadCompletion = notifyLoadCompletion || shouldFetch
+                if (shouldFetch) {
+                    val weather = weatherRepo.fetchWeather(cityKey)
+                    if (weather != null && weather.isComplete) {
+                        networkRefreshSucceeded = true
+                        _uiState.update { state ->
+                            if (state.cities.none { it.locationKey == cityKey }) state
+                            else state.copy(weathers = state.weathers + (cityKey to weather))
+                        }
+                    } else {
+                        failure = "获取天气数据失败"
                     }
-                } else {
-                    failure = "获取天气数据失败"
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -165,7 +194,6 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                             loadVersions = state.loadVersions - cityKey,
                         )
                     }
-                    val nextVersion = (state.loadVersions[cityKey] ?: 0L) + 1L
                     state.copy(
                         loadingKeys = state.loadingKeys - cityKey,
                         errorsByKey = if (failure == null) {
@@ -173,10 +201,22 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                         } else {
                             state.errorsByKey + (cityKey to failure)
                         },
-                        loadVersions = state.loadVersions + (cityKey to nextVersion),
+                        loadVersions = if (notifyLoadCompletion) {
+                            val nextVersion = (state.loadVersions[cityKey] ?: 0L) + 1L
+                            state.loadVersions + (cityKey to nextVersion)
+                        } else {
+                            state.loadVersions
+                        },
                     )
                 }
                 loadJobs.remove(cityKey)
+                if (
+                    pendingForceRefreshKeys.remove(cityKey) &&
+                    !networkRefreshSucceeded &&
+                    _uiState.value.cities.any { it.locationKey == cityKey }
+                ) {
+                    loadWeather(cityKey, forceRefresh = true)
+                }
             }
         }
     }
@@ -184,11 +224,13 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     /** 刷新当前城市天气 */
     fun refreshCurrentCity() {
         val city = _uiState.value.currentCity ?: return
-        loadWeather(city.locationKey)
+        loadWeather(city.locationKey, forceRefresh = true)
     }
 
-    fun refreshAllCities() {
-        _uiState.value.cities.forEach { city -> loadWeather(city.locationKey) }
+    fun refreshAllCities(forceRefresh: Boolean = false) {
+        _uiState.value.cities.forEach { city ->
+            loadWeather(city.locationKey, forceRefresh = forceRefresh)
+        }
     }
 
     fun markNetworkUnavailable() {

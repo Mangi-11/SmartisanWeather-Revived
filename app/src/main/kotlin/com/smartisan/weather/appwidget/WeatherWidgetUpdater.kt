@@ -10,9 +10,14 @@ import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.settings.WeatherSettings
 import com.smartisan.weather.data.weather.WeatherRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 
 internal object WeatherWidgetUpdater {
     /** Null states preserve the current status while only the cached content is invalidated. */
@@ -66,23 +71,32 @@ internal object WeatherWidgetUpdater {
         }
 
         val weatherRepository = WeatherRepository(appContext)
-        val failedKeys = buildSet {
+        // 留出前台天气、搜索和定位请求的网络预算，避免后台小组件占满全局四路并发。
+        val widgetRefreshSemaphore = Semaphore(MAX_CONCURRENT_WIDGET_REFRESHES)
+        val failedKeys = coroutineScope {
             resolved.targets
                 .map(SavedWidgetTarget::city)
                 .distinctBy(SavedCity::locationKey)
-                .forEach { city ->
-                    val weather = try {
-                        weatherRepository.fetchWeather(
-                            cityKey = city.locationKey,
-                            notifyWidgets = false,
-                        )
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (_: Exception) {
-                        null
+                .map { city ->
+                    async {
+                        val weather = widgetRefreshSemaphore.withPermit {
+                            try {
+                                weatherRepository.fetchWeather(
+                                    cityKey = city.locationKey,
+                                    notifyWidgets = false,
+                                )
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
+                        city.locationKey.takeUnless { weather?.isComplete == true }
                     }
-                    if (weather?.isComplete != true) add(city.locationKey)
                 }
+                .awaitAll()
+                .filterNotNull()
+                .toSet()
         }
 
         val attemptedKeys = resolved.targets.mapTo(mutableSetOf()) { it.city.locationKey }
@@ -158,4 +172,5 @@ internal object WeatherWidgetUpdater {
     }
 
     private val refreshMutex = Mutex()
+    private const val MAX_CONCURRENT_WIDGET_REFRESHES = 2
 }
