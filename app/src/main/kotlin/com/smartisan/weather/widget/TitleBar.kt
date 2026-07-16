@@ -1,6 +1,7 @@
 package com.smartisan.weather.widget
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Paint
 import android.text.TextUtils
 import android.util.AttributeSet
@@ -12,6 +13,7 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import com.smartisan.weather.R
+import com.smartisan.weather.util.ThemeUtils
 import kotlin.math.max
 
 class TitleBar @JvmOverloads constructor(
@@ -233,6 +235,23 @@ class TitleBar @JvmOverloads constructor(
         return ImageView(context).apply {
             id = View.generateViewId()
             setImageResource(resId)
+            if (
+                resId == R.drawable.standard_icon_back_selector &&
+                ThemeUtils.isNightMode(context)
+            ) {
+                imageTintList = ColorStateList(
+                    arrayOf(
+                        intArrayOf(-android.R.attr.state_enabled),
+                        intArrayOf(android.R.attr.state_pressed),
+                        intArrayOf(),
+                    ),
+                    intArrayOf(
+                        context.getColor(R.color.title_bar_icon_disabled),
+                        context.getColor(R.color.title_bar_icon_pressed),
+                        context.getColor(R.color.title_bar_icon_normal),
+                    ),
+                )
+            }
             scaleType = ImageView.ScaleType.CENTER
             isClickable = true
             isFocusable = true
