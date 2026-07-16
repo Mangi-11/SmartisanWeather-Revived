@@ -1,6 +1,7 @@
 package com.smartisan.weather.data.weather
 
 import android.content.Context
+import com.smartisan.weather.appwidget.WeatherWidgetUpdateNotifier
 import com.smartisan.weather.data.city.CityRepository
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.Weather
@@ -12,8 +13,9 @@ import kotlinx.coroutines.withContext
  */
 class WeatherRepository(context: Context) {
 
+    private val appContext = context.applicationContext
     private val apiClient = WeatherApiClient.getInstance()
-    private val cityRepo = CityRepository(context)
+    private val cityRepo = CityRepository(appContext)
 
     /** 获取天气数据：先返回缓存，再尝试刷新 */
     suspend fun getWeatherWithCache(cityKey: String): Weather? = withContext(Dispatchers.IO) {
@@ -23,6 +25,7 @@ class WeatherRepository(context: Context) {
             // 缓存到数据库
             val json = weatherToJson(weather)
             cityRepo.cacheWeather(cityKey, json)
+            WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
             weather
         } else {
             // 返回缓存
@@ -30,12 +33,22 @@ class WeatherRepository(context: Context) {
         }
     }
 
-    /** 仅获取天气数据（不读缓存） */
-    suspend fun fetchWeather(cityKey: String): Weather? = withContext(Dispatchers.IO) {
+    /**
+     * 仅获取天气数据（不读缓存）。
+     *
+     * 小组件自己的批量刷新会在全部城市处理完后统一渲染，因此可关闭中途通知。
+     */
+    suspend fun fetchWeather(
+        cityKey: String,
+        notifyWidgets: Boolean = true,
+    ): Weather? = withContext(Dispatchers.IO) {
         val weather = apiClient.fetchWeather(cityKey)
         if (weather != null && weather.isComplete) {
             val json = weatherToJson(weather)
             cityRepo.cacheWeather(cityKey, json)
+            if (notifyWidgets) {
+                WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
+            }
         }
         weather
     }
@@ -44,6 +57,17 @@ class WeatherRepository(context: Context) {
     suspend fun getCachedWeather(cityKey: String): Weather? = withContext(Dispatchers.IO) {
         cityRepo.getCachedWeather(cityKey)?.let { jsonToWeather(it) }
     }
+
+    /** 读取缓存及其真实写入时间，避免小组件把响应发布时间误当成本地更新时间。 */
+    suspend fun getCachedWeatherSnapshot(cityKey: String): CachedWeatherSnapshot? =
+        withContext(Dispatchers.IO) {
+            val record = cityRepo.getCachedWeatherRecord(cityKey) ?: return@withContext null
+            val weather = jsonToWeather(record.json) ?: return@withContext null
+            CachedWeatherSnapshot(
+                weather = weather,
+                updatedAtMillis = record.updatedAtMillis,
+            )
+        }
 
     companion object {
         /** 简单的 JSON 序列化（避免引入 Gson） */
@@ -309,3 +333,8 @@ class WeatherRepository(context: Context) {
         private const val CACHE_PROVIDER = "xiaomi-v1"
     }
 }
+
+data class CachedWeatherSnapshot(
+    val weather: Weather,
+    val updatedAtMillis: Long,
+)

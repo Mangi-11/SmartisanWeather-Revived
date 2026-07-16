@@ -60,6 +60,30 @@
             android:theme="@style/weather_theme"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
 
+        <activity
+            android:name=".appwidget.WeatherWidgetConfigureActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/weather_widget_configure_title"
+            android:theme="@style/WeatherWidgetConfigureTheme">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".appwidget.WeatherWidgetProvider"
+            android:exported="false"
+            android:label="@string/weather_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/weather_widget_info" />
+        </receiver>
+
         <!-- The app owns one in-process Room singleton and never enables
              multi-instance invalidation, so its cross-process service is unreachable. -->
         <service

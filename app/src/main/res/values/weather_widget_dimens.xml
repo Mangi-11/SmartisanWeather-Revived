@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Keep the legacy card artwork outside the host-controlled widget outline. -->
+    <dimen name="weather_widget_background_artwork_inset">-8dp</dimen>
+</resources>

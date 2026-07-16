@@ -28,6 +28,7 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.smartisan.weather.appwidget.WeatherWidgetProvider
 import com.smartisan.weather.bean.SmartisanLocation
 import com.smartisan.weather.data.city.CityRepository
 import com.smartisan.weather.data.model.Weather
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity(), AbstractController {
     private var initialSearchLaunched = false
     private var initialLocationRequested = false
     private var weatherStarted = false
+    private var pendingWidgetCityKey: String? = null
     private var locationRequestJob: Job? = null
     private var privacyDialog: PrivacyConsentDialog? = null
     private val settings by lazy(LazyThreadSafetyMode.NONE) {
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity(), AbstractController {
         super.onCreate(savedInstanceState)
         enableWeatherEdgeToEdge()
         setContentView(R.layout.activity_main)
+        pendingWidgetCityKey = intent.getStringExtra(WeatherWidgetProvider.EXTRA_CITY_KEY)
 
         container = findViewById(R.id.group_container)
         statusBarScrim = findViewById(R.id.status_bar_scrim)
@@ -203,6 +206,8 @@ class MainActivity : ComponentActivity(), AbstractController {
     private fun startWeather() {
         if (weatherStarted || isFinishing || isDestroyed) return
         weatherStarted = true
+        pendingWidgetCityKey?.let(viewModel::focusCity)
+        pendingWidgetCityKey = null
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.uiState.collect(::render) }
@@ -267,6 +272,16 @@ class MainActivity : ComponentActivity(), AbstractController {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        intent.getStringExtra(WeatherWidgetProvider.EXTRA_CITY_KEY)
+            ?.takeIf(String::isNotBlank)
+            ?.let { cityKey ->
+                if (weatherStarted) {
+                    viewModel.focusCity(cityKey)
+                } else {
+                    pendingWidgetCityKey = cityKey
+                }
+                return
+            }
         if (intent.getStringExtra(Constants.WEATHER_LAUNCH_PARAM) ==
             Constants.WEATHER_LUNCH_SOURCE_LAUNCHER_CARD
         ) {

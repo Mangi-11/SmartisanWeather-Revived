@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_city_choice"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="@drawable/selector_listitem"
+    android:checkMark="?android:attr/listChoiceIndicatorSingle"
+    android:ellipsize="end"
+    android:gravity="center_vertical"
+    android:maxLines="1"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:textColor="@color/item_pager_content_text_color"
+    android:textSize="14sp" />

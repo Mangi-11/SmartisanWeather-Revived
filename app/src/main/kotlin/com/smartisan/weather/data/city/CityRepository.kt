@@ -1,6 +1,7 @@
 package com.smartisan.weather.data.city
 
 import android.content.Context
+import com.smartisan.weather.appwidget.WeatherWidgetUpdateNotifier
 import com.smartisan.weather.data.model.HotCity
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.SearchResultCity
@@ -15,7 +16,8 @@ import kotlinx.coroutines.withContext
  */
 class CityRepository(context: Context) {
 
-    private val dao = WeatherDatabase.getInstance(context).savedCityDao()
+    private val appContext = context.applicationContext
+    private val dao = WeatherDatabase.getInstance(appContext).savedCityDao()
     private val apiClient = WeatherApiClient.getInstance()
 
     /** 观察所有已保存城市 */
@@ -33,7 +35,7 @@ class CityRepository(context: Context) {
         city: SearchResultCity,
         insertAfterKey: String? = null,
     ): AddResult = withContext(Dispatchers.IO) {
-        when (
+        val result = when (
             dao.insertRegularCity(
                 entity = SavedCityEntity(
                     locationKey = city.cityId,
@@ -51,6 +53,10 @@ class CityRepository(context: Context) {
             InsertRegularCityResult.ALREADY_EXISTS -> AddResult.ALREADY_EXISTS
             InsertRegularCityResult.LIMIT_EXCEEDED -> AddResult.LIMIT_EXCEEDED
         }
+        if (result == AddResult.SUCCESS) {
+            WeatherWidgetUpdateNotifier.notifyDataChanged(appContext, requestRefresh = true)
+        }
+        result
     }
 
     /** 添加定位城市 */
@@ -73,17 +79,24 @@ class CityRepository(context: Context) {
                 ),
             maxCities = MAX_CITIES,
         )
-        if (replaced) AddResult.SUCCESS else AddResult.LIMIT_EXCEEDED
+        if (replaced) {
+            WeatherWidgetUpdateNotifier.notifyDataChanged(appContext, requestRefresh = true)
+            AddResult.SUCCESS
+        } else {
+            AddResult.LIMIT_EXCEEDED
+        }
     }
 
     /** 删除城市 */
     suspend fun deleteCity(key: String) = withContext(Dispatchers.IO) {
         dao.deleteByKey(key)
+        WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
     }
 
     /** 更新排序 */
     suspend fun updateSortOrder(key: String, order: Int) = withContext(Dispatchers.IO) {
         dao.updateSortOrder(key, order)
+        WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
     }
 
     /** 按城市管理页的最终拖拽顺序原子更新 Room。 */
@@ -92,12 +105,14 @@ class CityRepository(context: Context) {
             orderedKeys = cities.map(SavedCity::locationKey),
             locationCityKey = cities.firstOrNull(SavedCity::isLocationCity)?.locationKey,
         )
+        WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
     }
 
     /** 交换两个城市的排序 */
     suspend fun swapSortOrder(city1: SavedCity, city2: SavedCity) = withContext(Dispatchers.IO) {
         dao.updateSortOrder(city1.locationKey, city2.sortOrder)
         dao.updateSortOrder(city2.locationKey, city1.sortOrder)
+        WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
     }
 
     /** 缓存天气数据 */
@@ -109,6 +124,14 @@ class CityRepository(context: Context) {
     suspend fun getCachedWeather(key: String): String? = withContext(Dispatchers.IO) {
         dao.getWeatherJsonByKey(key)
     }
+
+    /** 获取带更新时间的缓存，供桌面小组件表达陈旧状态。 */
+    suspend fun getCachedWeatherRecord(key: String): CachedWeatherRecord? =
+        withContext(Dispatchers.IO) {
+            val cache = dao.getCacheByKey(key) ?: return@withContext null
+            val json = cache.weatherJson ?: return@withContext null
+            CachedWeatherRecord(json = json, updatedAtMillis = cache.lastUpdate)
+        }
 
     /** 搜索城市。小米中国区接口一次返回完整结果，不提供分页。 */
     suspend fun searchCities(query: String): List<SearchResultCity> = withContext(Dispatchers.IO) {
@@ -172,3 +195,8 @@ class CityRepository(context: Context) {
         )
     }
 }
+
+data class CachedWeatherRecord(
+    val json: String,
+    val updatedAtMillis: Long,
+)

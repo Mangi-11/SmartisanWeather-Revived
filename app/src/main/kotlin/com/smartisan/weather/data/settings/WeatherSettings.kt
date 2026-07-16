@@ -1,11 +1,14 @@
 package com.smartisan.weather.data.settings
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.smartisan.weather.appwidget.WeatherWidgetUpdateNotifier
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -50,6 +54,7 @@ class WeatherSettings private constructor(context: Context) {
     suspend fun setTempUnit(unit: Int) {
         require(unit == UNIT_CELSIUS || unit == UNIT_FAHRENHEIT)
         appContext.weatherDataStore.edit { it[KEY_TEMP_UNIT] = unit }
+        WeatherWidgetUpdateNotifier.notifyDataChanged(appContext)
     }
 
     fun setTempUnitAsync(unit: Int) {
@@ -58,6 +63,51 @@ class WeatherSettings private constructor(context: Context) {
 
     suspend fun setPrivacyAccepted(accepted: Boolean) {
         appContext.weatherDataStore.edit { it[KEY_PRIVACY_ACCEPTED] = accepted }
+        WeatherWidgetUpdateNotifier.notifyDataChanged(
+            context = appContext,
+            requestRefresh = accepted,
+        )
+    }
+
+    /** 直接读取持久化温度单位，避免后台任务拿到 [tempUnit] 的初始占位值。 */
+    suspend fun readTempUnit(): Int =
+        preferences.first()[KEY_TEMP_UNIT] ?: UNIT_CELSIUS
+
+    /** 一次读取一组小组件的固定城市选择；缺失项表示自动选择。 */
+    suspend fun readWidgetCitySelections(appWidgetIds: IntArray): Map<Int, String> {
+        if (appWidgetIds.isEmpty()) return emptyMap()
+        val snapshot = preferences.first()
+        return appWidgetIds.asSequence().mapNotNull { appWidgetId ->
+            snapshot[widgetCityKey(appWidgetId)]?.let { appWidgetId to it }
+        }.toMap()
+    }
+
+    suspend fun setWidgetCitySelection(appWidgetId: Int, cityKey: String) {
+        require(appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID)
+        appContext.weatherDataStore.edit { preferences ->
+            preferences[widgetCityKey(appWidgetId)] = cityKey
+        }
+    }
+
+    suspend fun removeWidgetCitySelections(appWidgetIds: IntArray) {
+        if (appWidgetIds.isEmpty()) return
+        appContext.weatherDataStore.edit { preferences ->
+            appWidgetIds.forEach { appWidgetId ->
+                preferences.remove(widgetCityKey(appWidgetId))
+            }
+        }
+    }
+
+    suspend fun remapWidgetCitySelections(oldIds: IntArray, newIds: IntArray) {
+        if (oldIds.isEmpty() || oldIds.size != newIds.size) return
+        appContext.weatherDataStore.edit { preferences ->
+            oldIds.indices.forEach { index ->
+                val oldKey = widgetCityKey(oldIds[index])
+                val newKey = widgetCityKey(newIds[index])
+                preferences[oldKey]?.let { selection -> preferences[newKey] = selection }
+                preferences.remove(oldKey)
+            }
+        }
     }
 
     companion object {
@@ -65,6 +115,7 @@ class WeatherSettings private constructor(context: Context) {
         private val KEY_PRIVACY_ACCEPTED = booleanPreferencesKey("privacy_accepted")
         const val UNIT_CELSIUS = 1
         const val UNIT_FAHRENHEIT = 2
+        private const val WIDGET_CITY_KEY_PREFIX = "weather_widget_city_"
 
         @Volatile
         private var instance: WeatherSettings? = null
@@ -73,5 +124,8 @@ class WeatherSettings private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: WeatherSettings(context).also { instance = it }
             }
+
+        private fun widgetCityKey(appWidgetId: Int) =
+            stringPreferencesKey("$WIDGET_CITY_KEY_PREFIX$appWidgetId")
     }
 }

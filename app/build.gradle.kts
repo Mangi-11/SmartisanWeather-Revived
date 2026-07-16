@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room3)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -41,6 +42,7 @@ android {
     }
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 }
 
@@ -69,6 +71,9 @@ dependencies {
     implementation(libs.androidx.room3.runtime)
     implementation(libs.androidx.sqlite.framework)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.work.runtime)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.kotlinx.coroutines.android)
     ksp(libs.androidx.room3.compiler)
     testImplementation(libs.junit)

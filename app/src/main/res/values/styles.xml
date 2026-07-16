@@ -16,6 +16,10 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <style name="WeatherWidgetConfigureTheme" parent="weather_theme">
+        <item name="android:windowBackground">@drawable/list_bg</item>
+    </style>
+
     <style name="MenuDialogTheme" parent="@android:style/Theme.DeviceDefault.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowFrame">@null</item>

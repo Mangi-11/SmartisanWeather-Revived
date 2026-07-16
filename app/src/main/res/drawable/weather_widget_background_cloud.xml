@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:bottom="@dimen/weather_widget_background_artwork_inset"
+        android:drawable="@drawable/bg_weather_info_cloud"
+        android:left="@dimen/weather_widget_background_artwork_inset"
+        android:right="@dimen/weather_widget_background_artwork_inset"
+        android:top="@dimen/weather_widget_background_artwork_inset" />
+</layer-list>

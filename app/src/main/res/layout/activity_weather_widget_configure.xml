@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_configure_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.smartisan.weather.widget.InsetTopBarLayout
+        android:id="@+id/top_bar_surface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@color/white">
+
+        <com.smartisan.weather.widget.TitleBar
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/titlebar_height" />
+    </com.smartisan.weather.widget.InsetTopBarLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_configure_actions"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp">
+
+        <com.smartisan.weather.widget.ShadowButton
+            android:id="@+id/widget_configure_done"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/shrink_long_btn_red_selector"
+            android:singleLine="true"
+            android:text="@string/complete"
+            android:textColor="@android:color/white"
+            android:textSize="13.5sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/widget_configure_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/widget_configure_actions"
+        android:layout_below="@id/top_bar_surface">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_configure_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="24dp"
+                android:paddingTop="20dp"
+                android:paddingRight="24dp"
+                android:paddingBottom="12dp"
+                android:text="@string/weather_widget_configure_hint"
+                android:textColor="@color/item_pager_content_text_content_color"
+                android:textSize="13sp" />
+
+            <ListView
+                android:id="@+id/widget_configure_city_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:choiceMode="singleChoice"
+                android:clipToPadding="false"
+                android:divider="@color/divider_listview"
+                android:dividerHeight="1px"
+                android:listSelector="@android:color/transparent"
+                android:overScrollMode="always"
+                android:paddingBottom="16dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/widget_configure_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="32dp"
+            android:textColor="@color/item_pager_content_text_content_color"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/title_bar_shadow_height"
+        android:layout_below="@id/top_bar_surface"
+        android:background="@drawable/title_bar_shadow"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no" />
+</RelativeLayout>
