@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.4.0-7F52FF?logo=kotlin" alt="Kotlin 2.4.0" /></a>
-  <a href="https://developer.android.com/build"><img src="https://img.shields.io/badge/AGP-9.4.0--alpha04-3DDC84?logo=android" alt="AGP 9.4.0-alpha04" /></a>
+  <a href="https://developer.android.com/build"><img src="https://img.shields.io/badge/AGP-9.4.0--alpha08-3DDC84?logo=android" alt="AGP 9.4.0-alpha08" /></a>
   <a href="https://developer.android.com/about/versions/oreo/android-8.1"><img src="https://img.shields.io/badge/minSdk-27-3DDC84?logo=android" alt="minSdk 27" /></a>
   <img src="https://img.shields.io/badge/Coverage-Global-1677FF" alt="支持全球城市" />
 </p>
@@ -24,6 +24,7 @@ Smartisan OS 早已退出历史舞台，其中的天气应用也留在了旧 And
 - **更换天气数据源**：将原先不够准确的天气数据源替换为更准确的小米天气；中国城市使用小米混合数据，全球城市使用同一接口返回的 AccuWeather 数据，搜索、定位、城市管理、缓存和桌面小组件也因此支持全球城市。
 - **统一数据口径**：应用只通过小米天气这一条协议链路取数，不叠加备用天气 API；网络失败时读取同一城市、同一 provider 的本地缓存，避免不同天气模型之间的数据跳变。
 - **重新实现城市与定位**：城市搜索、坐标反查和天气城市匹配使用新的数据层，可保存中国及全球城市；定位基于 Android 系统能力，不依赖第三方定位 SDK。
+- **Compose 界面**：应用页面和对话框使用 Compose，保留原版图片、NinePatch、字体尺寸及自定义手势；迁移与验证范围见 [Compose 迁移记录](docs/compose-migration.md)。
 - **现代数据架构**：使用 Room、DataStore、Coroutines、ViewModel 和 StateFlow 管理城市、设置、缓存与页面状态。
 - **优化性能与耗电**：主页面按城市增量更新，自动复用短时间内的新鲜缓存，小组件采用受控并发刷新，在不降低天气时效和动画体验的前提下减少重复计算与网络请求。
 - **适配现代 Android**：支持 edge-to-edge、手势导航、刘海与系统栏 Insets，并对平板、折叠屏和多窗口中的内容宽度进行约束。
@@ -56,9 +57,9 @@ Smartisan OS 早已退出历史舞台，其中的天气应用也留在了旧 And
 
 | 类别 | 技术 |
 | --- | --- |
-| 构建 | Android Gradle Plugin `9.4.0-alpha04`、Gradle `9.6.1`、JDK 25（Java 17 字节码） |
+| 构建 | Android Gradle Plugin `9.4.0-alpha08`、Gradle `9.6.1`、JDK 25（Java 17 字节码） |
 | 语言 | Kotlin `2.4.0` |
-| UI | 应用页面使用 XML Layout、Android View、自定义 View、多 Activity；桌面小组件使用 Jetpack Glance |
+| UI | Jetpack Compose Foundation（BOM `2026.08.00`）、Canvas、多 Activity；桌面小组件使用 Jetpack Glance |
 | 状态 | ViewModel、StateFlow、Coroutines `1.11.0` |
 | 存储 | Room `3.0.0`、bundled SQLite `2.7.0`、DataStore `1.2.1` |
 | 网络 | `HttpURLConnection`、`org.json` |

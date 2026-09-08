@@ -20,12 +20,17 @@ data class CityListUiState(
     val weatherByCity: Map<String, Weather> = emptyMap(),
     val tempUnit: Int = WeatherSettings.UNIT_CELSIUS,
     val showDeleteConfirm: SavedCity? = null,
-)
+    val previewOrderKeys: List<String>? = null,
+) {
+    val displayCities: List<SavedCity>
+        get() = mergeCityPreview(cities, previewOrderKeys)
+}
 
 class CityListViewModel(app: Application) : AndroidViewModel(app) {
     private val cityRepo = CityRepository(app)
     private val weatherRepo = WeatherRepository(app)
     private val settings = WeatherSettings.getInstance(app)
+    private var dragSnapshot: List<String>? = null
 
     private val _uiState = MutableStateFlow(CityListUiState())
     val uiState: StateFlow<CityListUiState> = _uiState.asStateFlow()
@@ -59,6 +64,29 @@ class CityListViewModel(app: Application) : AndroidViewModel(app) {
             }.toMap()
             _uiState.value = _uiState.value.copy(weatherByCity = cachedWeather)
         }
+    }
+
+    fun beginDrag(cityKey: String) {
+        if (_uiState.value.displayCities.none { it.locationKey == cityKey && !it.isLocationCity }) return
+        dragSnapshot = _uiState.value.displayCities.map(SavedCity::locationKey)
+    }
+
+    fun moveCity(cityKey: String, targetKey: String) {
+        if (dragSnapshot == null) return
+        val cities = _uiState.value.displayCities
+        val from = cities.indexOfFirst { it.locationKey == cityKey }
+        val to = cities.indexOfFirst { it.locationKey == targetKey }
+        if (from < 0 || to < 0 || cities[to].isLocationCity || from == to) return
+        val keys = cities.map(SavedCity::locationKey).toMutableList()
+        keys.add(to, keys.removeAt(from))
+        _uiState.value = _uiState.value.copy(previewOrderKeys = keys)
+    }
+
+    fun finishDrag() { dragSnapshot = null }
+
+    fun cancelDrag() {
+        dragSnapshot?.let { _uiState.value = _uiState.value.copy(previewOrderKeys = it) }
+        dragSnapshot = null
     }
 
     fun showDeleteConfirm(city: SavedCity) {
@@ -97,4 +125,15 @@ class CityListViewModel(app: Application) : AndroidViewModel(app) {
     } catch (error: Exception) {
         Result.failure(error)
     }
+}
+
+/** Merge new repository objects without discarding an uncommitted order or resurrecting a deleted city. */
+internal fun mergeCityPreview(cities: List<SavedCity>, previewKeys: List<String>?): List<SavedCity> {
+    if (previewKeys == null) return cities
+    val latest = cities.associateBy(SavedCity::locationKey)
+    val merged = previewKeys.mapNotNull(latest::get).toMutableList()
+    val known = merged.mapTo(HashSet(), SavedCity::locationKey)
+    cities.forEach { if (known.add(it.locationKey)) merged.add(it) }
+    // Location remains the non-draggable first row even if it arrived while editing.
+    return merged.filter(SavedCity::isLocationCity) + merged.filterNot(SavedCity::isLocationCity)
 }

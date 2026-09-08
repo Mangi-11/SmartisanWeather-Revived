@@ -16,24 +16,16 @@
     <string name="current_location">現在の位置 %1$s</string>
     <string name="delete_city">删除城市</string>
     <string name="display_as_list">リストとして表示します。</string>
-    <string name="easter_egg_longtan">成都龙潭工业园</string>
-    <string name="easter_egg_mengzhuiwan">猛追湾横街99号</string>
-    <string name="easter_egg_shimao">成都世茂大厦</string>
-    <string name="easter_egg_shumagang">中国数码港大厦</string>
-    <string name="easter_egg_wangjingbei">望京北路1号</string>
-    <string name="ester_egg">望京东路1号</string>
     <string name="fahrenheit">華氏</string>
     <string name="fahrenheit_selected">華氏温度を選択しました</string>
     <string name="format_cityname">%1$s %2$s %3$s</string>
     <string name="format_weather">%1$s %2$s%3$s 至 %4$s%5$s</string>
-    <string name="green_land">北京绿地中心</string>
     <string name="hint_edittext_add_city">都市と地域を入力してください</string>
     <string name="real_feel_temp">体感温度</string>
     <string name="refresh">更新</string>
     <string name="relative_Humidity">相対湿度</string>
     <string name="separator"> , </string>
     <string name="unknow">?</string>
-    <string name="update_failed_gps_unavailable">GPS 位置情報サービスを有効にしているかを確認してください</string>
     <string name="update_failed_network_unavailable1">天気データを読み込みできませんでした。</string>
     <string name="update_failed_network_unavailable2">ネットワーク接続を確認して、更新ボタンをクリックして、もう一度お試しください。</string>
     <string name="weather_add_city_alread">町を追加しました</string>
@@ -53,32 +45,17 @@
     <string name="weather_alert_tip">%1$s%2$s预警</string>
     <string name="weather_alert_title">気象警報</string>
     <string name="weather_c_icon_description">%1$dºC</string>
-    <string name="weather_celsius_symbol">°C</string>
     <string name="weather_city_list_delete_last_city_tips">1つ以上の都市を残してください</string>
-    <string name="weather_click_refresh_no_network">请检查网络连接后点击刷新按钮重试</string>
     <string name="weather_current_day_text">きょう</string>
     <string name="weather_f_icon_description">%1$dºF</string>
-    <string name="weather_fahrenheit_symbol">°F</string>
-    <string name="weather_forecast_co_text">CO</string>
     <string name="weather_forecast_date">%1$s.%2$s</string>
-    <string name="weather_forecast_no2_text">NO₂</string>
-    <string name="weather_forecast_o3_text">O₃</string>
-    <string name="weather_forecast_pm10_text">PM10</string>
-    <string name="weather_forecast_pm2_5_text">PM2.5</string>
-    <string name="weather_forecast_so2_text">SO₂</string>
-    <string name="weather_forecast_templet_icon">%1$s=%2$s=%3$s=%4$s=%5$s=%6$s</string>
-    <string name="weather_forecast_templet_icon_second">%1$s=%2$s=%3$d=%4$s=%5$s=%6$d</string>
-    <string name="weather_forecast_templet_normal">%1$s=%2$s=%3$s=%4$s</string>
     <string name="weather_forecast_ultraviolet_radiation">紫外線放射</string>
     <string name="weather_forecast_wind_level">階級</string>
     <string name="weather_hot_city">人気都市</string>
-    <string name="weather_location_default_name">位置特定</string>
     <string name="weather_null">--</string>
     <string name="weather_pager_aqi_text">空気質指数 </string>
-    <string name="weather_pager_jump_text">さらに読み込む</string>
     <string name="weather_pager_update_text">更新時刻 %1$s</string>
     <string name="weather_pager_week_and_date_text">%1$s %2$s</string>
-    <string name="weather_percent_symbol">%</string>
     <string name="weather_startup_notice_title">ご利用にあたって</string>
     <string name="weather_startup_notice_exit">終了</string>
     <string name="weather_startup_notice_continue">続ける</string>
@@ -93,9 +70,6 @@
     <string name="weather_search_no_connect_info">データを取得できません</string>
     <string name="weather_search_no_connect_info_tip">ネットワークに接続し、更新してから再試行してください</string>
     <string name="weather_search_refresh">更新</string>
-    <string name="weather_sunrise_code">1000</string>
-    <string name="weather_sunset_code">1001</string>
-    <string name="weather_temperature_symbol">°</string>
     <string name="weather_text_00">晴れ</string>
     <string name="weather_text_01">曇り</string>
     <string name="weather_text_02">陰</string>

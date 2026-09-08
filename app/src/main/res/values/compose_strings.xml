@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weather_no_browser">没有可打开此链接的浏览器</string>
+</resources>

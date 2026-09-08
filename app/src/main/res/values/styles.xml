@@ -23,38 +23,9 @@
         <item name="android:windowBackground">@drawable/list_bg</item>
     </style>
 
-    <style name="MenuDialogTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowFrame">@null</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation.InputMethod</item>
-        <item name="android:background">@android:color/transparent</item>
-        <item name="android:backgroundDimEnabled">true</item>
-    </style>
 
     <style name="PrivacyDialogAnimation">
         <item name="android:windowEnterAnimation">@anim/privacy_dialog_enter</item>
         <item name="android:windowExitAnimation">@anim/privacy_dialog_exit</item>
-    </style>
-    <!-- 复刻自原版 StandardIconStyle：标准图标尺寸 + centerInside 缩放 -->
-    <style name="StandardIconStyle" parent="">
-        <item name="android:layout_width">@dimen/standard_icon_size</item>
-        <item name="android:layout_height">@dimen/standard_icon_size</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <!-- 复刻自原版 item_pager_title_bar_style：城市名标题样式 -->
-    <style name="item_pager_title_bar_style" parent="">
-        <item name="android:textSize">@dimen/item_pager_title_text_size</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/item_pager_title_tex_color</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:ellipsize">end</item>
     </style>
 </resources>

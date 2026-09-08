@@ -3,25 +3,19 @@ package com.smartisan.weather.bean
 import android.os.Parcel
 import android.os.Parcelable
 
-/**
- * 城市位置信息，复刻自原版 com.smartisan.weather.bean.SmartisanLocation。
- *
- * 原版实现 Parcelable 且带 Gson @SerializedName 注解；此处保留 Parcelable 与字段结构，
- * 移除 Gson 注解（复刻版使用 org.json 解析，不依赖 Gson）。
- * 原版另有 SmartisanLocation(SinaCity) 构造器，因 SinaCity 不在本次移植范围而省略。
- */
+/** Activity navigation payload identifying a city and its position in the saved list. */
 class SmartisanLocation : Parcelable {
-    @JvmField var id: Int = 0
-    @JvmField var mCountry: String? = null
-    @JvmField var mLocationKey: String? = null
-    @JvmField var mLocationName: String? = null
-    @JvmField var mLocationParentName: String? = null
-    @JvmField var mProvince: String? = null
-    @JvmField var sortOrder: Int = 0
+    var id: Int = 0
+    var mCountry: String? = null
+    var mLocationKey: String? = null
+    var mLocationName: String? = null
+    var mLocationParentName: String? = null
+    var mProvince: String? = null
+    var sortOrder: Int = 0
 
     constructor()
 
-    constructor(parcel: Parcel) {
+    private constructor(parcel: Parcel) {
         id = parcel.readInt()
         mLocationKey = parcel.readString()
         mLocationName = parcel.readString()

@@ -5,7 +5,7 @@
 ## 开发约束
 
 - 源码全部使用 Kotlin，主包为 `com.smartisan.weather`，目录固定为 `app/src/main/kotlin/com/smartisan/weather/`。
-- UI 使用 XML Layout + Android View + 自定义 View；项目已经移除 Jetpack Compose 和 Material3，不要重新引入 Compose 作为页面宿主或兼容层。
+- UI 全面使用 Jetpack Compose Foundation + 自定义 Compose 组件与 Canvas；页面由 Activity.setContent 承载。不要重新引入 XML Layout、RecyclerView 或用 AndroidView 包装旧页面，也不要用 Material 默认组件替换原版外观。
 - 使用多 Activity：主天气、城市搜索、城市管理和天气预警分别由独立 Activity 承载。
 - 这是无历史包袱的新项目，不需要兼容旧包路径、旧数据库、旧 SharedPreferences 或旧版应用升级流程。不要添加 `com.smartisanos.*`、Java 源码或仅用于迁移旧数据的分支。
 - 原版 APK/XML/资源/反编译代码用于确认尺寸、层级、状态机和动画细节；现代化应集中在生命周期、状态管理、数据层和系统 Insets，不应无依据地改写视觉行为。
@@ -15,58 +15,41 @@
 
 ```text
 app/src/main/kotlin/com/smartisan/weather/
-├── SmartisanWeatherApplication.kt       # 轻量 Application 入口
-├── MainActivity.kt                      # 主天气 Activity、生命周期与页面跳转
-├── WeatherGroupContainer.kt             # 多城市分页、背景和主界面切换
-├── WeatherContentViewUtil.kt            # 原版天气内容 View 的创建/绑定
-├── custom/                              # 原版天气自定义 View 与动画 View
-│   ├── WeatherMainTemView.kt
-│   ├── WeatherTempAnimView.kt
-│   ├── WeatherHourForecastView.kt
-│   ├── SmartisanScrollView.kt
-│   ├── RefreshViewGroupLayout.kt
-│   ├── DragSortListView.kt
-│   ├── ElasticOverScrollLayout.kt
-│   └── IndicateView.kt
-├── widget/                              # 本地实现的 Smartisan 风格通用控件
-│   ├── TitleBar.kt
-│   ├── SearchBar.kt
-│   ├── MenuDialog.kt
-│   └── ShadowButton.kt
-├── bean/                                # 原版 View 层使用的数据 Bean
-├── data/
-│   ├── model/WeatherModels.kt           # 现代天气领域模型
-│   ├── city/                            # Room 3 城市数据库与仓库
-│   ├── location/                        # 系统反向地理编码与天气城市匹配
-│   ├── settings/WeatherSettings.kt      # DataStore Preferences 设置源
-│   └── weather/                         # 天气 API、JSON 解析和缓存
+├── MainActivity.kt                      # 授权、定位、导航与生命周期
+├── SmartisanWeatherApplication.kt
+├── custom/                              # 纯 Drawable / 原温度图集资源，无自定义 View
+├── bean/SmartisanLocation.kt             # Activity 搜索位置 Parcelable
+├── data/                                # Room、DataStore、定位、网络、领域模型
+├── appwidget/                           # Glance 小组件与 Compose 配置页
 ├── ui/
-│   ├── main/                            # 主页面 ViewModel 与领域模型映射
-│   ├── search/                          # XML/View 城市搜索 Activity
-│   ├── citylist/                        # XML/View 城市管理 Activity
-│   ├── alert/                           # XML/View 天气预警 Activity
-│   ├── startup/                         # 首次启动使用说明
-│   └── navigation/                      # Activity 转场
-└── util/                                # 资源映射、温度单位、主题和日志工具
+│   ├── components/                       # 原资源 Painter、按压反馈、文字、标题栏
+│   ├── main/                             # WeatherScreen、温度/预报、ViewModel
+│   ├── search/                           # 搜索、热门城市、嵌套滚动回弹
+│   ├── citylist/                         # 城市列表、拖拽排序、预览状态
+│   ├── alert/                            # 天气预警
+│   ├── startup/                          # Compose 首次说明及定位提示
+│   └── navigation/                       # 多 Activity 转场与导航数据
+└── util/                                 # 天气资源映射、主题、日志和格式化
 
 app/src/main/res/
-├── layout/                              # 原版层级恢复后的 XML Layout
-├── drawable*/                           # selector、shape、PNG 与 NinePatch
-└── anim/                                # Activity/View 转场资源
+├── layout/weather_widget_compact.xml      # 系统桌面小组件选择器的 RemoteViews 预览
+├── drawable*/                            # 原版 selector、shape、PNG 与 NinePatch
+├── values*/                              # 尺寸、文字、浅色/深色语义颜色
+└── anim/                                 # Activity/Dialog 窗口转场资源
 ```
 
 ## 当前架构
 
-- **UI**：纯 Kotlin + XML/View，多 Activity，原版自定义 View 直接承载复杂绘制和动画。
-- **工具链**：Gradle 9.6.1、AGP 9.4.0-alpha04、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、JDK 25（Gradle Daemon）与 Java 17 字节码。
-- **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、RecyclerView 1.4.0、Coroutines 1.11.0。
-- **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Activity 使用 lifecycle-aware collection；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
+- **UI**：纯 Kotlin + Compose Foundation，多 Activity；使用 Canvas 绘制原温度 PNG，原 Drawable/NinePatch 通过 Painter 绘制。无 AndroidView、ComposeView 嵌套或旧页面兼容层。
+- **工具链**：Gradle 9.6.1、AGP 9.4.0-alpha08、Kotlin 2.4.0（AGP 9 内置 Kotlin，由根构建脚本覆盖编译器版本）、KSP 2.3.10、JDK 25（Gradle Daemon）与 Java 17 字节码。
+- **核心库**：Room 3.0.0 + bundled SQLite 2.7.0、Activity 1.13.0、Lifecycle 2.11.0、DataStore 1.2.1、Compose BOM 2026.08.00、Coroutines 1.11.0。
+- **状态**：AndroidX ViewModel + Kotlin Coroutines + `StateFlow`，Compose 使用 collectAsStateWithLifecycle，事件使用 repeatOnLifecycle；首次隐私同意前不实例化天气 ViewModel、不发天气请求。
 - **数据**：Room 3 + bundled SQLite 保存城市；DataStore Preferences 是温度单位等设置的唯一数据源。
 - **网络**：`HttpURLConnection` + `org.json`，统一接入小米天气 `wtr-v3`；中国城市使用混合数据，全球城市使用其 AccuWeather 链路，不使用 Retrofit/Moshi。
 - **依赖注入**：Application/Repository 手动单例，不引入 DI 框架。
-- **系统 UI**：target/compile API 37，页面按 View edge-to-edge 规则分别消费状态栏、导航栏和 IME Insets。
+- **系统 UI**：target/compile API 37，页面使用 Compose WindowInsets 分别消费系统栏、刘海和 IME Insets，内容画布仍限制 480dp 居中。
 - **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` 获取坐标，再由小米天气 `location/city/geo` 返回 canonical `weathercn` 或 `accu` 城市；不引入第三方定位 SDK。
-- **资源**：原版可用的 XML、PNG、selector、动画和 56 个源 NinePatch 已从 APK 资源表恢复并由 aapt2 正常编译；不要再用 Compose 渐变替换这些资源。
+- **资源**：当前仍使用的原版 PNG、selector、动画和 NinePatch 已从 APK 资源表恢复并由 aapt2 正常编译；未使用的旧资源已按引用清理；不要再用 Compose 渐变替换这些资源。
 
 当前 namespace 为 `com.smartisan.weather`，applicationId 为 `app.smartisanweather.revived`。原版包名 `com.smartisanos.weather` 仅用于逆向对照，不得作为新源码包。
 
@@ -77,6 +60,7 @@ app/src/main/res/
 ./gradlew assembleDebug      # Debug APK
 ./gradlew lintDebug          # Android Lint
 ./gradlew assembleRelease    # Release APK，包含 R8 与资源压缩
+./gradlew connectedDebugAndroidTest  # Compose 交互、绘制和 Room 设备测试
 ```
 
 提交页面或动画改动前，至少运行：
@@ -85,7 +69,7 @@ app/src/main/res/
 ./gradlew testDebugUnitTest assembleDebug lintDebug
 ```
 
-涉及 View 尺寸、Insets、触摸或动画的改动还必须安装到模拟器/真机，通过截图、录屏和交互实际验证，不能只以编译通过作为完成标准。
+涉及组件尺寸、Insets、触摸或动画的改动还必须安装到模拟器/真机，通过截图、录屏和交互实际验证，不能只以编译通过作为完成标准。
 
 ## 天气 API
 
@@ -114,11 +98,11 @@ app/src/main/res/
 - 原版包名：`com.smartisanos.weather`
 - 逆向 APK：`Weather_8.1.3.apk`
 
-## 已恢复的关键交互
+## 需持续守住的原版关键交互
 
 - 城市管理页支持按柄拖拽、原行隐藏、上下阴影浮层、换位/落位动画、边缘滚动、取消恢复；返回丢弃预览顺序，完成后才用 Room 单事务提交。
 - 主页面已恢复城市分页阈值、边界阻尼及五次 ease-out 收拢；天气内容切换、温度刷新滚动、未变化温度抖动、C/F 滑动和背景过渡均按反编译参数恢复。关键参数包括内容 200/50ms、数值滚动 1400ms、抖动 125/250/250ms 加 70ms 延迟、C/F 小温度项 300ms、背景 100ms 延迟加 400ms 过渡。
-- 城市拖拽换位与落位分别为 200ms、150ms；搜索结果使用本地 AndroidX nested-scrolling 弹性容器，恢复原版无限拖动换算、0.5 拖动倍率、2.5 最大拖动率、黏性流体曲线和 250ms 回弹；不依赖 SmartRefresh 或 DynamicAnimation。
+- 城市拖拽换位与落位分别为 200ms、150ms；搜索结果使用 Compose nestedScroll 弹性滚动，恢复原版无限拖动换算、0.5 拖动倍率、2.5 最大拖动率、黏性流体曲线和 250ms 回弹；不依赖 SmartRefresh 或 DynamicAnimation。
 - 首次启动使用说明、系统定位权限与定位城市写入均已贯通；说明使用纯文本展示，不再内置或跳转原版许可/隐私 HTML。
 - API 37 大屏强制可调整窗口下，页面背景铺满窗口，原版手机内容画布限制为 480dp 并居中；四边系统栏、刘海和 IME Insets 已在主页面及全部次级页面验证。
 
@@ -126,7 +110,7 @@ app/src/main/res/
 
 - 仍需在更多密度、字库和厂商设备上建立确定性数据的截图/录屏基线，继续校准少量像素级字体基线、阴影和渲染差异。
 - 需要增加超过一屏城市/搜索结果的真机手感回归，校准拖拽边缘滚动、搜索惯性越界回弹与不同刷新率下的节奏。
-- 480dp 居中方案仍需在真实平板、折叠/展开、多窗口和侧边挖孔设备补测；这是设备矩阵验证，不是重新设计页面。
+- 480dp 居中方案仍需在真实平板、折叠/展开、多窗口和侧边挖孔设备补测；这是设备矩阵验证，不是重新设计页面。Compose 迁移后的验证范围与差异见 docs/compose-migration.md。
 - 如需正式发布，应另行提供符合项目实际情况的隐私说明；不要恢复或复用原版 Smartisan 协议正文。
 
 不要把“页面能打开”或“静态截图接近”视为 1:1 完成；每项交互都需要在设备上验证按下、拖拽、取消、切页、刷新和生命周期恢复状态。
