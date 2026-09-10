@@ -61,9 +61,7 @@
     <string name="weather_startup_notice_continue">继续使用</string>
     <string name="weather_startup_notice_message">本应用为个人开发者<b>使用现代 Android 技术栈完全重写</b>的非官方开源版本，与 Smartisan、锤子科技、小米及 AccuWeather 无任何隶属、授权或合作关系，仅供学习与技术交流使用。\n\n数据通过小米天气接口获取，其中全球城市数据由 AccuWeather 提供；定位仅用于匹配所在城市。应用内无账号系统、无广告、无数据统计及中转服务器；所有数据仅存留于本机，源码已在 GitHub 完全开源。天气信息仅供参考。</string>
     <string name="weather_request_location_permission_tips_cancel">取消</string>
-    <string name="weather_request_location_permission_tips_message">定位城市天气预报功能需要使用位置信息，请点击去设置</string>
     <string name="weather_request_location_permission_tips_setting">去设置</string>
-    <string name="weather_request_location_permission_tips_title">提示</string>
     <string name="weather_search_city_default_locaiton">定位</string>
     <string name="weather_search_empty_info1">无搜索结果</string>
     <string name="weather_search_empty_info2">请重新输入搜索内容</string>
@@ -126,7 +124,6 @@
     <string name="wind_dir_9">旋转风</string>
     <string name="cancel">取消</string>
     <string name="complete">完成</string>
-    <string name="findcity_update_failed_location_server_unavailable">添加失败，请打开定位服务后重试</string>
     <string name="findcity_update_failed_network_unavailable">获取天气数据失败，请检查网络连接后重试</string>
     <string name="location_server_unavailable">定位服务未开启</string>
     <string name="update_location_not_find_city">抱歉，没有找到你现在所在的城市或地区</string>

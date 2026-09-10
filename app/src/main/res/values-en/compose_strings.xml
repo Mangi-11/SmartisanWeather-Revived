@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="weather_no_browser">No browser is available to open this link.</string>
+    <string name="weather_location_permission_title">Location permission</string>
+    <string name="weather_location_permission_message">Allow location access to find your city automatically, or cancel and add a city manually. If access is disabled, enable it under Permissions → Location in system settings.</string>
+    <string name="weather_location_precision_title">Improve location accuracy</string>
+    <string name="weather_location_precision_message">Precise location can help identify the right district near boundaries. Enable it under Permissions → Location in system settings, or continue with approximate location.</string>
+    <string name="weather_location_use_approximate">Use approximate</string>
+    <string name="weather_location_permission_denied">Location access is unavailable. You can add a city manually.</string>
+    <string name="weather_location_fix_unavailable">Unable to get your current location. Please try again later.</string>
+    <string name="weather_location_settings_unavailable">Unable to open system settings. Adjust location access in your phone settings.</string>
+    <string name="weather_location_allow">Allow location</string>
 </resources>

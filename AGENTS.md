@@ -48,7 +48,7 @@ app/src/main/res/
 - **网络**：`HttpURLConnection` + `org.json`，统一接入小米天气 `wtr-v3`；中国城市使用混合数据，全球城市使用其 AccuWeather 链路，不使用 Retrofit/Moshi。
 - **依赖注入**：Application/Repository 手动单例，不引入 DI 框架。
 - **系统 UI**：target/compile API 37，页面使用 Compose WindowInsets 分别消费系统栏、刘海和 IME Insets，内容画布仍限制 480dp 居中。
-- **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` 获取坐标，再由小米天气 `location/city/geo` 返回 canonical `weathercn` 或 `accu` 城市；不引入第三方定位 SDK。
+- **定位**：系统 `LocationManager` + AndroidX `LocationManagerCompat` 获取坐标，精确/粗略权限联合申请；ViewModel 管理并发单次定位、取消、城市反查和天气刷新。手动同城刷新强制更新天气，前台自动定位按 5 分钟节流；不引入第三方定位 SDK 或后台定位。策略与官方依据见 `docs/location-refresh.md`。
 - **资源**：当前仍使用的原版 PNG、selector、动画和 NinePatch 已从 APK 资源表恢复并由 aapt2 正常编译；未使用的旧资源已按引用清理；不要再用 Compose 渐变替换这些资源。
 
 当前 namespace 为 `com.smartisan.weather`，applicationId 为 `app.smartisanweather.revived`。原版包名 `com.smartisanos.weather` 仅用于逆向对照，不得作为新源码包。

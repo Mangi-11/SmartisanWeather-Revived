@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="weather_no_browser">このリンクを開くブラウザが見つかりません。</string>
+    <string name="weather_location_permission_title">位置情報の権限</string>
+    <string name="weather_location_permission_message">位置情報を許可すると現在の都市を自動で検索できます。キャンセルして手動で追加することもできます。権限が無効の場合は、システム設定の「権限 → 位置情報」で有効にしてください。</string>
+    <string name="weather_location_precision_title">位置情報の精度を上げる</string>
+    <string name="weather_location_precision_message">正確な位置情報を使うと、行政区の境界付近での誤差を減らせます。システム設定の「権限 → 位置情報」で有効にするか、おおよその位置情報で続行できます。</string>
+    <string name="weather_location_use_approximate">おおよその位置を使用</string>
+    <string name="weather_location_permission_denied">位置情報が許可されていません。都市を手動で追加できます。</string>
+    <string name="weather_location_fix_unavailable">現在地を取得できません。しばらくしてからお試しください。</string>
+    <string name="weather_location_settings_unavailable">システム設定を開けません。端末の設定で位置情報の権限を変更してください。</string>
+    <string name="weather_location_allow">位置情報を許可</string>
 </resources>

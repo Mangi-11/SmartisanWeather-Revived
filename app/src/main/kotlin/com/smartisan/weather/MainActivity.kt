@@ -1,30 +1,24 @@
 package com.smartisan.weather
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.ActivityNotFoundException
-import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.CancellationSignal
-import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.smartisan.weather.appwidget.WeatherWidgetProvider
 import com.smartisan.weather.bean.SmartisanLocation
 import com.smartisan.weather.data.city.CityRepository
+import com.smartisan.weather.data.location.LocationAccess
 import com.smartisan.weather.data.model.Weather
 import com.smartisan.weather.data.network.NetworkMonitor
 import com.smartisan.weather.data.settings.WeatherSettings
@@ -39,11 +33,7 @@ import com.smartisan.weather.ui.search.SearchCityActivity
 import com.smartisan.weather.ui.startup.StartupNoticeDialog
 import com.smartisan.weather.util.Constants
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
 
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smartisan.weather.ui.main.WeatherScreen
 import com.smartisan.weather.ui.navigation.toSearchLocation
 import com.smartisan.weather.ui.startup.WeatherLocationDialog
+import com.smartisan.weather.ui.startup.LocationNotice
 
 /** Owns permissions, navigation and lifecycle; Compose owns the weather presentation. */
 class MainActivity : WeatherEdgeToEdgeActivity() {
@@ -61,33 +52,40 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
     private val viewModel by viewModels<WeatherViewModel>()
     private var weatherStarted by mutableStateOf(false)
     private var showStartupNotice by mutableStateOf(false)
-    private var showLocationNotice by mutableStateOf(false)
+    private var locationNotice by mutableStateOf<LocationNotice?>(null)
+    private var awaitingLocationPermission = false
+    private var awaitingLocationSettings = false
     private var firstStart = true
     private var initialSearchLaunched = false
     private var initialLocationRequested = false
     private var pendingWidgetCityKey: String? = null
-    private var locationRequestJob: Job? = null
     private val settings by lazy(LazyThreadSafetyMode.NONE) { WeatherSettings.getInstance(this) }
     private val networkMonitor by lazy(LazyThreadSafetyMode.NONE) { NetworkMonitor(this) }
 
     private val locationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) {
-            requestCurrentLocation()
-        } else {
-            viewModel.locationUnavailable(R.string.findcity_update_failed_location_server_unavailable)
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) {
+        continueLocationAfterExternalUi {
+            awaitingLocationPermission = false
+            if (LocationAccess.read(this) != LocationAccess.NONE) requestCurrentLocation()
+            else if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                viewModel.locationUnavailable(R.string.weather_location_permission_denied)
+            } else locationNotice = LocationNotice.PERMISSION
         }
     }
 
     private val locationSettingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
-        val manager = getSystemService(LocationManager::class.java)
-        if (manager != null && LocationManagerCompat.isLocationEnabled(manager)) {
-            requestCurrentLocation()
-        } else {
-            viewModel.locationUnavailable(R.string.findcity_update_failed_location_server_unavailable)
+        continueLocationAfterExternalUi {
+            awaitingLocationSettings = false
+            when {
+                LocationAccess.read(this) == LocationAccess.NONE ->
+                    viewModel.locationUnavailable(R.string.weather_location_permission_denied)
+                !isLocationEnabled() ->
+                    viewModel.locationUnavailable(R.string.location_server_unavailable)
+                else -> requestCurrentLocation()
+            }
         }
     }
 
@@ -119,6 +117,9 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
         super.onCreate(savedInstanceState)
         initialSearchLaunched = savedInstanceState?.getBoolean("initialSearchLaunched") ?: false
         initialLocationRequested = savedInstanceState?.getBoolean("initialLocationRequested") ?: false
+        locationNotice = savedInstanceState?.getString("locationNotice")?.let(LocationNotice::valueOf)
+        awaitingLocationPermission = savedInstanceState?.getBoolean("awaitingLocationPermission") ?: false
+        awaitingLocationSettings = savedInstanceState?.getBoolean("awaitingLocationSettings") ?: false
         pendingWidgetCityKey = intent.getStringExtra(WeatherWidgetProvider.EXTRA_CITY_KEY)
         setContent {
             if (weatherStarted) {
@@ -157,16 +158,38 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
                 },
                 onExit = ::finish,
             )
-            if (showLocationNotice) WeatherLocationDialog(
-                onCancel = {
-                    showLocationNotice = false
-                    viewModel.locationUnavailable(R.string.findcity_update_failed_location_server_unavailable)
-                },
-                onSettings = {
-                    showLocationNotice = false
-                    locationSettingsLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                },
-            )
+            locationNotice?.let { notice ->
+                WeatherLocationDialog(
+                    notice = notice,
+                    onCancel = {
+                        locationNotice = null
+                        if (notice == LocationNotice.PRECISION) requestCurrentLocation()
+                        else viewModel.locationUnavailable(
+                            if (notice == LocationNotice.PERMISSION || notice == LocationNotice.RATIONALE) R.string.weather_location_permission_denied
+                            else R.string.location_server_unavailable,
+                        )
+                    },
+                    onSettings = {
+                        locationNotice = null
+                        if (notice == LocationNotice.RATIONALE) {
+                            requestLocationPermissions()
+                            return@WeatherLocationDialog
+                        }
+                        awaitingLocationSettings = true
+                        val destination = if (notice == LocationNotice.SERVICES) {
+                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        } else {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri())
+                        }
+                        try {
+                            locationSettingsLauncher.launch(destination)
+                        } catch (_: ActivityNotFoundException) {
+                            awaitingLocationSettings = false
+                            viewModel.locationUnavailable(R.string.weather_location_settings_unavailable)
+                        }
+                    },
+                )
+            }
         }
         lifecycleScope.launch {
             if (settings.startupNoticeAccepted.first()) startWeather() else showStartupNotice = true
@@ -176,6 +199,9 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("initialSearchLaunched", initialSearchLaunched)
         outState.putBoolean("initialLocationRequested", initialLocationRequested)
+        outState.putString("locationNotice", locationNotice?.name)
+        outState.putBoolean("awaitingLocationPermission", awaitingLocationPermission)
+        outState.putBoolean("awaitingLocationSettings", awaitingLocationSettings)
         super.onSaveInstanceState(outState)
     }
 
@@ -185,9 +211,9 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
         firstStart = false
     }
 
-    override fun onDestroy() {
-        locationRequestJob?.cancel()
-        super.onDestroy()
+    override fun onStop() {
+        if (weatherStarted && !isChangingConfigurations) viewModel.cancelLocation()
+        super.onStop()
     }
 
     private fun startWeather() {
@@ -195,6 +221,14 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
         pendingWidgetCityKey?.let(viewModel::focusCity)
         pendingWidgetCityKey = null
         weatherStarted = true
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.uiState.first { it.citiesLoaded }
+                if (!locationUiPending() && LocationAccess.read(this@MainActivity) != LocationAccess.NONE &&
+                    isLocationEnabled()
+                ) viewModel.refreshLocation(automatic = true)
+            }
+        }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.events.collect(::handleWeatherEvent) }
@@ -214,7 +248,6 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
 
     private fun handleWeatherEvent(event: WeatherEvent) {
         when (event) {
-            is WeatherEvent.LocationUpdated -> viewModel.focusCity(event.cityKey)
             is WeatherEvent.LocationFailed -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
                 if (viewModel.uiState.value.cities.isEmpty()) launchRequiredSearch()
@@ -244,8 +277,8 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
     }
 
     private fun openSource(url: String) {
-        val destination = url.takeIf { Uri.parse(it).scheme.equals("https", ignoreCase = true) } ?: Constants.PARNTER_URL
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(destination))
+        val destination = url.takeIf { it.toUri().scheme.equals("https", ignoreCase = true) } ?: Constants.PARNTER_URL
+        val intent = Intent(Intent.ACTION_VIEW, destination.toUri())
         // ACTION_VIEW can launch a browser even when package visibility hides it from queries.
         try {
             startActivity(intent)
@@ -256,7 +289,11 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
 
     private fun refreshCurrentCity() {
         val city = viewModel.uiState.value.currentCity ?: return
-        if (city.isLocationCity) startLocationFlow() else viewModel.refreshCurrentCity()
+        when {
+            !city.isLocationCity -> viewModel.refreshCurrentCity()
+            LocationAccess.read(this) == LocationAccess.NONE -> startLocationFlow()
+            else -> requestCurrentLocation()
+        }
     }
 
     private fun addCity() {
@@ -287,116 +324,47 @@ class MainActivity : WeatherEdgeToEdgeActivity() {
     }
 
     private fun startLocationFlow() {
-        if (viewModel.uiState.value.isLocating || locationRequestJob?.isActive == true) return
-        if (
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-            return
+        if (viewModel.uiState.value.isLocating || locationUiPending()) return
+        when (LocationAccess.read(this)) {
+            LocationAccess.NONE -> {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    locationNotice = LocationNotice.RATIONALE
+                } else requestLocationPermissions()
+            }
+            LocationAccess.APPROXIMATE -> locationNotice = LocationNotice.PRECISION
+            LocationAccess.PRECISE -> requestCurrentLocation()
         }
-        requestCurrentLocation()
     }
 
-    @SuppressLint("MissingPermission")
+    private fun requestLocationPermissions() {
+        awaitingLocationPermission = true
+        locationPermissionLauncher.launch(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+        )
+    }
+
     private fun requestCurrentLocation() {
-        if (locationRequestJob?.isActive == true) return
-        val manager = getSystemService(LocationManager::class.java)
-        if (manager == null || !LocationManagerCompat.isLocationEnabled(manager)) {
-            showLocationSettingsDialog()
-            return
-        }
-        if (availableLocationProviders(manager).isEmpty()) {
-            viewModel.locationUnavailable(
-                R.string.findcity_update_failed_location_server_unavailable,
-            )
-            return
-        }
-
-        locationRequestJob = lifecycleScope.launch {
-            try {
-                val location = getCurrentLocation(manager)
-                if (location == null) {
-                    viewModel.locationUnavailable(
-                        R.string.findcity_update_failed_location_server_unavailable,
-                    )
-                } else {
-                    viewModel.resolveLocation(location)
-                }
-            } finally {
-                locationRequestJob = null
-            }
+        when {
+            LocationAccess.read(this) == LocationAccess.NONE -> locationNotice = LocationNotice.PERMISSION
+            !isLocationEnabled() -> locationNotice = LocationNotice.SERVICES
+            else -> viewModel.refreshLocation()
         }
     }
 
-    private fun availableLocationProviders(manager: LocationManager): List<String> {
-        val candidates = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(LocationManager.FUSED_PROVIDER)
-            }
-            add(LocationManager.GPS_PROVIDER)
-            add(LocationManager.NETWORK_PROVIDER)
-            add(LocationManager.PASSIVE_PROVIDER)
-        }
-        return candidates.filter { provider ->
-            provider in manager.allProviders && runCatching {
-                manager.isProviderEnabled(provider)
-            }.getOrDefault(false)
-        }
-    }
+    private fun isLocationEnabled(): Boolean = getSystemService(LocationManager::class.java)?.let {
+        LocationManagerCompat.isLocationEnabled(it)
+    } == true
 
-    @SuppressLint("MissingPermission")
-    private suspend fun getCurrentLocation(manager: LocationManager): Location? =
-        withTimeoutOrNull(CURRENT_LOCATION_TIMEOUT_MILLIS) {
-            val providers = availableLocationProviders(manager)
-            providers.mapNotNull { provider ->
-                runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
-            }.filter(::isFreshLocation).maxByOrNull(Location::getElapsedRealtimeNanos)?.let {
-                return@withTimeoutOrNull it
-            }
-            providers.firstNotNullOfOrNull { provider ->
-                withTimeoutOrNull(PROVIDER_LOCATION_TIMEOUT_MILLIS) {
-                    requestProviderLocation(manager, provider)
-                }
+    private fun locationUiPending(): Boolean =
+        locationNotice != null || awaitingLocationPermission || awaitingLocationSettings
+
+    private fun continueLocationAfterExternalUi(action: () -> Unit) {
+        lifecycleScope.launch {
+            // Activity results can arrive before the startup DataStore read after process recreation.
+            if (settings.startupNoticeAccepted.first()) {
+                startWeather()
+                action()
             }
         }
-
-    private fun isFreshLocation(location: Location): Boolean {
-        val ageNanos = SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos
-        return ageNanos in 0..MAX_LAST_LOCATION_AGE_NANOS
-    }
-
-    @SuppressLint("MissingPermission")
-    private suspend fun requestProviderLocation(
-        manager: LocationManager,
-        provider: String,
-    ): Location? =
-        suspendCancellableCoroutine { continuation ->
-            val cancellationSignal = CancellationSignal()
-            continuation.invokeOnCancellation { cancellationSignal.cancel() }
-            try {
-                LocationManagerCompat.getCurrentLocation(
-                    manager,
-                    provider,
-                    cancellationSignal,
-                    ContextCompat.getMainExecutor(this@MainActivity),
-                ) { location ->
-                    if (continuation.isActive) continuation.resume(location)
-                }
-            } catch (_: RuntimeException) {
-                if (continuation.isActive) continuation.resume(null)
-            }
-        }
-
-    private fun showLocationSettingsDialog() {
-        if (!isFinishing && !isDestroyed) showLocationNotice = true
-    }
-
-    private companion object {
-        const val CURRENT_LOCATION_TIMEOUT_MILLIS = 20_000L
-        const val PROVIDER_LOCATION_TIMEOUT_MILLIS = 6_000L
-        const val MAX_LAST_LOCATION_AGE_NANOS = 5L * 60L * 1_000_000_000L
     }
 }

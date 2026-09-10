@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -159,7 +161,9 @@ private fun WeatherNoticeContent(
     val textColor = colorResource(R.color.app_secondary_text_color)
     val raisedColor = colorResource(R.color.app_surface_raised_color)
     val dividerColor = colorResource(R.color.app_divider_color)
-    Column(modifier.semantics { paneTitle = title }.testTag(tagPrefix)) {
+    // Compose children do not inherit the Window NinePatch's rounded outline. Clip the
+    // content too, using the same 12 dp corners as the original pressed-button resources.
+    Column(modifier.clip(RoundedCornerShape(12.dp)).semantics { paneTitle = title }.testTag(tagPrefix)) {
         Box(
             Modifier.fillMaxWidth().background(raisedColor)
                 .heightIn(min = 48.dp).padding(horizontal = 16.dp),
@@ -273,6 +277,6 @@ private fun StartupNoticePreview() {
         onPositive = {},
         onNegative = {},
         tagPrefix = "startup_notice",
-        modifier = Modifier.fillMaxWidth().background(colorResource(R.color.app_surface_color)),
+        modifier = Modifier.fillMaxWidth().background(colorResource(R.color.app_surface_color), RoundedCornerShape(12.dp)),
     )
 }

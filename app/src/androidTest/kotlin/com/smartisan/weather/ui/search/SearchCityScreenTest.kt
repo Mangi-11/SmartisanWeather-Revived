@@ -46,4 +46,22 @@ class SearchCityScreenTest {
         compose.onNodeWithText(ApplicationProvider.getApplicationContext<Context>().getString(R.string.weather_search_refresh)).performClick()
         compose.runOnIdle { assertEquals(1, retries) }
     }
+    @Test
+    fun existingLocationCityCanBeLocatedAgain() {
+        var located = 0
+        var duplicates = 0
+        compose.setContent {
+            SearchCityScreen(
+                state = SearchUiState(addedKeys = setOf("101010100")),
+                locationName = "当前位置",
+                locationKey = "101010100",
+                onQueryChange = {}, onCancel = {}, onRetry = {}, onCityClick = {}, onHotCityClick = {},
+                onLocationClick = { located++ }, onAlreadyAdded = { duplicates++ }, requestKeyboard = false,
+            )
+        }
+        compose.onNodeWithText("当前位置").performClick()
+        compose.waitUntil { located == 1 }
+        compose.runOnIdle { assertEquals(0, duplicates) }
+    }
+
 }

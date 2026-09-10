@@ -61,9 +61,7 @@
     <string name="weather_startup_notice_continue">続ける</string>
     <string name="weather_startup_notice_message">本アプリは、個人開発者が<b>最新の Android 技術スタックで完全に書き直した</b>非公式のオープンソース版です。Smartisan（锤子科技）、Xiaomi、AccuWeather との提携、認可、協力関係はなく、学習および技術交流のみを目的としています。\n\nデータは Xiaomi Weather 経由で取得し、海外都市のデータには AccuWeather を使用します。位置情報は現在地の都市を特定するためにのみ使用します。アカウント、広告、データ解析、中継サーバーはなく、すべてのデータは端末内にのみ保存されます。ソースコードは GitHub ですべて公開しています。天気情報は参考情報です。</string>
     <string name="weather_request_location_permission_tips_cancel">キャンセル</string>
-    <string name="weather_request_location_permission_tips_message">位置特定による天気予報機能を使用するには、位置情報を取得する必要があります。タップして設定してください</string>
     <string name="weather_request_location_permission_tips_setting">設定</string>
-    <string name="weather_request_location_permission_tips_title">ご注意</string>
     <string name="weather_search_city_default_locaiton">位置特定</string>
     <string name="weather_search_empty_info1">検索結果が見つかりません</string>
     <string name="weather_search_empty_info2">もう一度検索内容を入力してください</string>

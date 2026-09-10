@@ -1,7 +1,7 @@
 package com.smartisan.weather.ui.main
 
 import android.app.Application
-import android.location.Location
+import android.os.SystemClock
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +10,7 @@ import com.smartisan.weather.data.city.CityRepository
 import com.smartisan.weather.data.location.LocationCityFailureReason
 import com.smartisan.weather.data.location.LocationCityResolutionException
 import com.smartisan.weather.data.location.LocationCityResolver
+import com.smartisan.weather.data.location.DeviceLocationSource
 import com.smartisan.weather.data.model.SavedCity
 import com.smartisan.weather.data.model.Weather
 import com.smartisan.weather.data.settings.WeatherSettings
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
@@ -54,7 +56,6 @@ data class WeatherUiState(
 }
 
 sealed interface WeatherEvent {
-    data class LocationUpdated(val cityKey: String) : WeatherEvent
     data class LocationFailed(@param:StringRes val message: Int) : WeatherEvent
 }
 
@@ -78,6 +79,8 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val weatherRepo = WeatherRepository(app)
     private val settings = WeatherSettings.getInstance(app)
     private val locationResolver = LocationCityResolver(app)
+    private val locationSource = DeviceLocationSource(app)
+    private var lastLocationAttemptMillis: Long? = null
 
     private val _uiState = MutableStateFlow(WeatherUiState())
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
@@ -255,46 +258,51 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun resolveLocation(location: Location) {
+    /** Owns acquisition, city resolution and refresh as one cancellable foreground operation. */
+    fun refreshLocation(automatic: Boolean = false) {
         if (locationJob?.isActive == true) return
+        val previousCity = _uiState.value.cities.firstOrNull(SavedCity::isLocationCity)
+        val now = SystemClock.elapsedRealtime()
+        if (automatic && (previousCity == null || !shouldRefreshLocation(lastLocationAttemptMillis, now))) return
+        lastLocationAttemptMillis = now
         _uiState.update { it.copy(isLocating = true) }
         locationJob = viewModelScope.launch {
             try {
-                locationResolver.resolve(location).fold(
-                    onSuccess = { city ->
-                        when (
-                            cityRepo.setLocationCity(city)
-                        ) {
-                            CityRepository.AddResult.LIMIT_EXCEEDED -> {
-                                eventChannel.send(
-                                    WeatherEvent.LocationFailed(R.string.city_count_over_limit),
-                                )
-                            }
-
-                            else -> {
-                                focusCity(city.cityId)
-                                eventChannel.send(WeatherEvent.LocationUpdated(city.cityId))
-                            }
-                        }
-                    },
-                    onFailure = { error ->
-                        DebugLog.log(
-                            LOCATION_TAG,
-                            "Resolution failed: " +
-                                ((error as? LocationCityResolutionException)?.reason?.name
-                                    ?: error.javaClass.simpleName),
-                        )
-                        val message = if (
-                            (error as? LocationCityResolutionException)?.reason ==
-                            LocationCityFailureReason.CITY_SEARCH_FAILED
-                        ) {
-                            R.string.findcity_update_failed_network_unavailable
-                        } else {
-                            R.string.update_location_not_find_city
-                        }
-                        eventChannel.send(WeatherEvent.LocationFailed(message))
-                    },
+                val location = locationSource.getCurrentLocation()
+                if (location == null) {
+                    if (!automatic) locationUnavailable(R.string.weather_location_fix_unavailable)
+                    return@launch
+                }
+                val city = locationResolver.resolve(location).getOrThrow()
+                if (cityRepo.setLocationCity(city) == CityRepository.AddResult.LIMIT_EXCEEDED) {
+                    if (!automatic) locationUnavailable(R.string.city_count_over_limit)
+                    return@launch
+                }
+                // Room emits asynchronously. Publish the target before starting its weather job,
+                // otherwise a fast response could be discarded as belonging to an unknown city.
+                _uiState.first { state -> state.cities.any { it.locationKey == city.cityId } }
+                if (!automatic) focusCity(city.cityId)
+                loadWeather(city.cityId, forceRefresh = !automatic)
+            } catch (cancelled: CancellationException) {
+                // A stopped screen must not report failure or turn cancellation into a refresh.
+                lastLocationAttemptMillis = null
+                throw cancelled
+            } catch (error: Exception) {
+                DebugLog.log(
+                    LOCATION_TAG,
+                    "Location failed: " +
+                        ((error as? LocationCityResolutionException)?.reason?.name
+                            ?: error.javaClass.simpleName),
                 )
+                if (!automatic) {
+                    val message = when ((error as? LocationCityResolutionException)?.reason) {
+                        LocationCityFailureReason.CITY_SEARCH_FAILED -> R.string.findcity_update_failed_network_unavailable
+                        LocationCityFailureReason.CITY_NOT_FOUND,
+                        LocationCityFailureReason.INVALID_LOCATION -> R.string.update_location_not_find_city
+                        null -> R.string.weather_location_fix_unavailable
+                    }
+                    locationUnavailable(message)
+                }
             } finally {
                 _uiState.update { it.copy(isLocating = false) }
                 locationJob = null
@@ -302,7 +310,15 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun cancelLocation() {
+        locationJob?.cancel()
+    }
+
     fun locationUnavailable(@StringRes message: Int) {
+        // A failed coordinate fix must not prevent a user from refreshing existing weather.
+        _uiState.value.cities.firstOrNull(SavedCity::isLocationCity)?.let {
+            loadWeather(it.locationKey, forceRefresh = true)
+        }
         eventChannel.trySend(WeatherEvent.LocationFailed(message))
     }
 

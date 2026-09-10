@@ -64,9 +64,7 @@
     <string name="weather_startup_notice_continue">Continue</string>
     <string name="weather_startup_notice_message">This is an unofficial open-source version <b>completely rewritten by an individual developer with a modern Android technology stack</b>. It has no affiliation, authorization, or partnership with Smartisan, Hammer Technology, Xiaomi, or AccuWeather and is intended solely for learning and technical exchange.\n\nData is retrieved through Xiaomi Weather; global-city data is provided by AccuWeather. Location is used only to match your city. The app has no account system, ads, analytics, or relay server. All data remains on your device, and the complete source code is open on GitHub. Weather information is for reference only.</string>
     <string name="weather_request_location_permission_tips_cancel">Cancel</string>
-    <string name="weather_request_location_permission_tips_message">Turn on location services to allow “Weather” to determine your location, click to go to settings</string>
     <string name="weather_request_location_permission_tips_setting">Go to settings</string>
-    <string name="weather_request_location_permission_tips_title">Prompt</string>
     <string name="weather_search_city_default_locaiton">Location Service</string>
     <string name="weather_search_empty_info1">No search results</string>
     <string name="weather_search_empty_info2">Please enter search contents again</string>
@@ -129,7 +127,6 @@
     <string name="wind_dir_9">Rotational wind</string>
     <string name="cancel">Cancel</string>
     <string name="complete">Done</string>
-    <string name="findcity_update_failed_location_server_unavailable">Failed to add location, please open the location service and try again.</string>
     <string name="findcity_update_failed_network_unavailable">Failed to access weather data, please check your connection and try again.</string>
     <string name="location_server_unavailable">Location Service Is Unavailable</string>
     <string name="update_location_not_find_city">Sorry, your city or region cannot currently be found</string>

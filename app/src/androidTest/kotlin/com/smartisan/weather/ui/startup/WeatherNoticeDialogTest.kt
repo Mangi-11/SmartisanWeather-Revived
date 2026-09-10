@@ -140,4 +140,43 @@ class WeatherNoticeDialogTest {
             assertEquals(0, cancelled)
         }
     }
+    @Test
+    fun approximateLocationRemainsAnExplicitUsableChoice() {
+        var approximate = 0
+        var settings = 0
+        compose.setContent {
+            WeatherLocationDialog(
+                notice = LocationNotice.PRECISION,
+                onCancel = { approximate++ },
+                onSettings = { settings++ },
+            )
+        }
+        compose.onNodeWithTag("location_notice_positive").assertIsDisplayed()
+        compose.onNodeWithTag("location_notice_negative").assertIsDisplayed().performClick()
+        compose.runOnIdle {
+            assertEquals(1, approximate)
+            assertEquals(0, settings)
+        }
+        saveVerificationScreenshot("location-precision")
+    }
+
+    @Test
+    fun deniedPermissionCanBeCancelledWithoutOpeningSettings() {
+        var cancelled = 0
+        var settings = 0
+        compose.setContent {
+            WeatherLocationDialog(
+                notice = LocationNotice.PERMISSION,
+                onCancel = { cancelled++ },
+                onSettings = { settings++ },
+            )
+        }
+        compose.onNodeWithTag("location_notice_negative").performClick()
+        compose.runOnIdle {
+            assertEquals(1, cancelled)
+            assertEquals(0, settings)
+        }
+        saveVerificationScreenshot("location-permission")
+    }
+
 }

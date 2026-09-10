@@ -68,7 +68,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.smartisan.weather.R
 import com.smartisan.weather.data.model.HotCity
@@ -198,7 +197,8 @@ private fun HotCities(
         Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 24.dp)) {
             CityChip(locationName ?: stringResource(R.string.weather_search_city_default_locaiton),
                 R.drawable.selector_location_city_item, locationKey in state.addedKeys) {
-                select { if (locationKey in state.addedKeys) onAlreadyAdded() else onLocationClick() }
+                // An existing location city can be relocated or upgraded to precise access.
+                select(onLocationClick)
             }
             FlowRow(horizontalArrangement = Arrangement.Start, verticalArrangement = Arrangement.Top) {
                 state.hotCities.forEach { city ->
@@ -308,18 +308,6 @@ private fun SearchLoading(modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "search loading")
     val angle by transition.animateFloat(0f, 360f, infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Restart), label = "spinner angle")
     WeatherDrawable(R.drawable.spinner_48_outer_smartisanos_light, null, modifier.size(48.dp).rotate(angle))
-}
-
-@Composable
-internal fun SearchPermissionDialog(onDismiss: () -> Unit, onOpenSettings: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Column(Modifier.fillMaxWidth().weatherDrawableBackground(R.drawable.list_bg).padding(18.dp)) {
-            PixelText(stringResource(R.string.weather_request_location_permission_tips_title), 18.dp, colorResource(R.color.app_primary_text_color), fontWeight = FontWeight.Bold)
-            PixelText(stringResource(R.string.weather_request_location_permission_tips_message), 15.dp, colorResource(R.color.app_primary_text_color), Modifier.padding(vertical = 18.dp))
-            OriginalTextButton(stringResource(R.string.weather_request_location_permission_tips_setting), R.drawable.selector_small_btn_standard, Modifier.fillMaxWidth().height(48.dp), onClick = onOpenSettings)
-            OriginalTextButton(stringResource(R.string.weather_request_location_permission_tips_cancel), R.drawable.selector_small_btn_standard, Modifier.padding(top = 8.dp).fillMaxWidth().height(48.dp), onClick = onDismiss)
-        }
-    }
 }
 
 @Preview(widthDp = 360, heightDp = 720)
